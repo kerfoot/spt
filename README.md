@@ -1,4 +1,5 @@
-++Slocum Power Tools (SPT)++
+Slocum Power Tools (SPT)
+========================
 A library of Matlab routines for loading, manipulating and visualizing Slocum 
 glider data files
 
@@ -36,14 +37,14 @@ Seawater (TEOS-10), which can be found here:
 As of September 2013, I have not made the switch to the GSW toolbox.
 
 Installation:
-========
+============
 
 The archived and latest releases of the toolbox are located here:
     http://marine.rutgers.edu/~kerfoot/slocum/code/
 
 Unzipping the tarball creates the following directory structure
 
-++./slocum/matlab/spt++
+*./slocum/matlab/spt*
 
     bin/ General purpose routines for date conversions, file operations, etc.
 
