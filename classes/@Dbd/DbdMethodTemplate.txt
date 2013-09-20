@@ -1,0 +1,41 @@
+function DbdMethodTemplate(obj, varargin)
+% 
+% DbdMethodTemplate(obj, varargin)
+%
+% See also Dbd
+%
+% ============================================================================
+% $RCSfile: DbdMethodTemplate.txt,v $
+% $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@Dbd/DbdMethodTemplate.txt,v $
+% $Revision: 1.1 $
+% $Date: 2013/09/16 15:24:22 $
+% $Author: kerfoot $
+% ============================================================================
+% 
+
+app = mfilename;
+
+h = [];
+
+if ~isa(obj, 'Dbd')
+    error(sprintf('%s:invalidClass', app),...
+        'Method can only be attached to the Dbd class');
+elseif ~isequal(mod(length(varargin),2),0)
+    error(sprintf('%s:varargin', app),...
+        'Invalid number of options specified');
+end
+
+for x = 1:2:length(varargin)
+    
+    name = varargin{x};
+    value = varargin{x+1};
+    
+    switch lower(name)
+        otherwise
+            error(sprintf('%s:varargin', app),...
+                'Invalid option: %s',...
+                name);
+    end
+end
+
+    
