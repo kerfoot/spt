@@ -1,5 +1,5 @@
-Slocum Power Tools (SPT)
-========================
+SPT: Slocum Power Tools
+=======================
 A library of Matlab routines for loading, manipulating and visualizing Slocum 
 glider data files
 
