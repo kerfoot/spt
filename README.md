@@ -48,27 +48,27 @@ Unzipping the tarball creates the following directory structure
 
 **./slocum/matlab/spt**
 
-    **bin/**
+    bin/
        General purpose routines for date conversions, file operations, etc.
 
-    **classes/**
+    classes/
         Class definitions
 
-    **CVS/**
+    CVS/
         Revision history of the Concurrent Version System.
 
-    **export/**
+    export/
         Routines for exporting glider data to various file formats
 
-    **navigation/**
+    navigation/
         Routines for calculating GPS units conversion, great circle distance calculations, etc.
 
-    **README.md**
+    README.md
         Toolbox information
 
-    **util/**
+    util/
         Routines for manipulating glider data
 
-    **vis/**
+    vis/
         Plotting routines
 
