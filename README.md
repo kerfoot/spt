@@ -30,11 +30,11 @@ other things:
 The toolbox currently uses the [CSIRO Matlab EOS-80 Seawater Library](http://www.cmar.csiro.au/datacentre/ext_docs/seawater.htm) to derive oceanic properties from the raw glider measurements.  
     
 
-A copy of the last stable version can also be found [here](http://marine.rutgers.edu/~kerfoot/slocum/code/seawater_ver3_3.tar)
+A copy of the last stable version can also be found [here](http://marine.rutgers.edu/~kerfoot/slocum/code/seawater_ver3_3.tar).
 
 Development of this toolbox has been stopped in favor of the Gibbs SeaWater
 (GSW) Oceanographic Toolbox of the International Thermodynamic Equation of
-Seawater (TEOS-10), which can be found [here](http://www.teos-10.org/software/gsw_matlab_v3_02.zip)
+Seawater (TEOS-10), which can be found [here](http://www.teos-10.org/software/gsw_matlab_v3_02.zip).
 
 As of September 2013, I have not made the switch to the GSW toolbox.
 
@@ -46,22 +46,29 @@ The archived and latest releases of the toolbox are located here:
 
 Unzipping the tarball creates the following directory structure
 
-*./slocum/matlab/spt*
+**./slocum/matlab/spt**
 
-    bin/ General purpose routines for date conversions, file operations, etc.
+    **bin/**
+       General purpose routines for date conversions, file operations, etc.
 
-    classes/ Class definitions
+    **classes/**
+        Class definitions
 
-    CVS/ Revision history of the Concurrent Version System.
+    **CVS/**
+        Revision history of the Concurrent Version System.
 
-    export/ Routines for exporting glider data to various file formats
+    **export/**
+        Routines for exporting glider data to various file formats
 
-    navigation/ Routines for calculating GPS units conversion, great circle
-        distance calculations, etc.
+    **navigation/**
+        Routines for calculating GPS units conversion, great circle distance calculations, etc.
 
-    README: Toolbox information
+    **README.md**
+        Toolbox information
 
-    util/ Routines for manipulating glider data
+    **util/**
+        Routines for manipulating glider data
 
-    vis/ Plotting routines
+    **vis/**
+        Plotting routines
 
