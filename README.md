@@ -29,7 +29,6 @@ other things:
 
 The toolbox currently uses the [CSIRO Matlab EOS-80 Seawater Library](http://www.cmar.csiro.au/datacentre/ext_docs/seawater.htm) to derive oceanic properties from the raw glider measurements.  
     
-
 A copy of the last stable version can also be found [here](http://marine.rutgers.edu/~kerfoot/slocum/code/seawater_ver3_3.tar).
 
 Development of this toolbox has been stopped in favor of the Gibbs SeaWater
