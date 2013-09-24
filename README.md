@@ -3,15 +3,12 @@ SPT: Slocum Power Tools
 A library of Matlab routines for loading, manipulating and visualizing Slocum 
 glider data files
 
-John Kerfoot
+    John Kerfoot
+    Institute of Marine & Coastal Sciences, Rutgers University
+    kerfoot@marine.rutgers.edu
+    (848) 932-3344
 
-Institute of Marine & Coastal Sciences, Rutgers University
-
-kerfoot@marine.rutgers.edu
-
-(848) 932-3344
-
-Documentation for this toolbox currently resides [here](http://rucool.marine.rutgers.edu/manuals/glider/thoughts-ideas-and-tips-for-slocum-glider-data-management)
+Documentation for this toolbox currently resides [here](http://rucool.marine.rutgers.edu/manuals/glider/thoughts-ideas-and-tips-for-slocum-glider-data-management).  [Wiki](https://github.com/kerfoot/spt/wiki) documentation is currently under contstruction.
 
 Background
 ----------
@@ -36,38 +33,4 @@ Development of this toolbox has been stopped in favor of the Gibbs SeaWater
 Seawater (TEOS-10), which can be found [here](http://www.teos-10.org/software/gsw_matlab_v3_02.zip).
 
 As of September 2013, I have not made the switch to the GSW toolbox.
-
-Installation
--------------
-
-The archived and latest releases of the toolbox are located here:
-    http://marine.rutgers.edu/~kerfoot/slocum/code/
-
-Unzipping the tarball creates the following directory structure
-
-**./slocum/matlab/spt**
-
-    bin/
-       General purpose routines for date conversions, file operations, etc.
-
-    classes/
-        Class definitions
-
-    CVS/
-        Revision history of the Concurrent Version System.
-
-    export/
-        Routines for exporting glider data to various file formats
-
-    navigation/
-        Routines for calculating GPS units conversion, great circle distance calculations, etc.
-
-    README.md
-        Toolbox information
-
-    util/
-        Routines for manipulating glider data
-
-    vis/
-        Plotting routines
 
