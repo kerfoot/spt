@@ -77,8 +77,8 @@ function dgroup = dbds2DbdGroup(dbd_list, varargin)
 % ============================================================================
 % $RCSfile: dbds2DbdGroup.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/proc/dbds2DbdGroup.m,v $
-% $Revision: 1.5 $
-% $Date: 2013/10/07 16:01:12 $
+% $Revision: 1.6 $
+% $Date: 2013/10/07 18:17:36 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -477,7 +477,7 @@ for d = 1:length(dbd_list)
     % Convert m_gps_lon and m_gps_lat to decimal degrees, if they exist, and 
     % add as drv_m_gps_lat and drv_m_gps_lon
     if CONVERT_GPS
-        convertDbdGps(dbd);
+        convertGps(dbd);
     end
     
     % Save the Dbd instance if SAVE_DBD_DIR contains a valid directory
