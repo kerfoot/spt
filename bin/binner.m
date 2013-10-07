@@ -8,8 +8,8 @@ function binned = binner(data, column, binSize, varargin)
 % ============================================================================
 % $RCSfile: binner.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/bin/binner.m,v $
-% $Revision: 1.1.1.1 $
-% $Date: 2013/09/13 18:51:18 $
+% $Revision: 1.2 $
+% $Date: 2013/09/26 20:55:02 $
 % $Author: kerfoot $
 % $Name:  $
 % ============================================================================
@@ -53,11 +53,30 @@ for x = 1:length(bins)
     
     % Find all rows within this bin +/- halfWidth
     binInds = data(:,column) > bin-halfWidth &...
-        data(:,column) <= bin + halfWidth;
+        data(:,column) <= bin+halfWidth;
     
-    % Take the mean
+    % Take the mean excluding nans
     if any(binInds)
-        binned(x,:) = mean(data(binInds,:),1);
+        
+        % Data to bin
+        t_data = data(binInds,:);
+        % Find NaNs
+        nans = isnan(t_data);
+        % Count up the number we need to divide each column sum by
+        denominator = sum(~isnan(t_data),1);
+        % Replace 0 with 1 to prevent divide by 0 errors
+        denominator(denominator == 0) = 1;
+        % Set all NaN values in the array to 0
+        t_data(nans) = 0;
+        
+        % Sum the raw data column-wise and divide by the number of non-NaN
+        % points
+        b_data = sum(t_data,1)./denominator;
+        % Replace all column values where there were no non-NaN points with
+        % NaN
+        b_data(all(nans,1)) = NaN;
+        
+        binned(x,:) = b_data;
     end;
 
 end;
