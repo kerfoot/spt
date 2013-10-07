@@ -25,8 +25,8 @@ function iTemplate = plotDbdGroupSection(obj, sensor, varargin)
 % ============================================================================
 % $RCSfile: plotDbdGroupSection.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/vis/plotDbdGroupSection.m,v $
-% $Revision: 1.1.1.1 $
-% $Date: 2013/09/13 18:51:19 $
+% $Revision: 1.3 $
+% $Date: 2013/10/01 12:54:02 $
 % $Author: kerfoot $
 % $Name:  $
 % ============================================================================
@@ -63,7 +63,8 @@ profileTypes = {'a',...
     'up',...
     'u',...
     }';
-cbarTypes = {'horiz',...
+cbarTypes = {'none',...
+    'horiz',...
     'vert',...
     }';
 % Default option values
@@ -157,9 +158,10 @@ for x = 1:2:length(varargin)
                 return;
             end
             m = strncmpi(value, cbarTypes, 1);
-            if ~all(m)
+            if ~any(m)
                 warning([mfilename ':invalidOptionValue'],...
-                    ['Value for option ' name ' must be ''vert'' or ''horiz''.']);
+                    ['Value for option ' name ' must be one of the following:']);
+                cbarTypes
                 return;
             end
             CBAR_TYPE = cbarTypes{m};
@@ -338,15 +340,18 @@ set(gca,...
     'linewidth', 1,...
     'DataAspectRatio', [dasp(1)/2 dasp(2:3)]);
 
-% Label the colorbar
-if ~isempty(sensorLabel)
-    cbarLabel = [sensorLabel ' (' obj.sensorUnits.(sensor) ')'];
-else
-    cbarLabel = [sensor ' (' obj.sensorUnits.(sensor) ')'];
+% Label the colorbar if it exists
+cb = findobj('Tag', 'Colorbar');
+if ~isempty(cb)
+    if ~isempty(sensorLabel)
+        cbarLabel = [sensorLabel ' (' obj.sensorUnits.(sensor) ')'];
+    else
+        cbarLabel = [sensor ' (' obj.sensorUnits.(sensor) ')'];
+    end
+    ylabel(cb,...
+        cbarLabel,...
+        'Interpreter', 'None');
 end
-ylabel(findobj(gcf, 'Tag', 'Colorbar'),...
-    cbarLabel,...
-    'Interpreter', 'None');
 
 % Set t0 and t1 to the minimum and maximum timestamp values, respectively
 if isnan(t0) || isnan(t1)
@@ -367,7 +372,9 @@ if t1 > datenum(3000,1,1,0,0,0)
 end
 
 % Title the plot
-tString = [datestr(t0, 'yyyy-mm-dd HH:MM')...
+tString = [obj.dbds(1).glider...
+    ': '...
+    datestr(t0, 'yyyy-mm-dd HH:MM')...
     ' - '...
     datestr(t1, 'yyyy-mm-dd HH:MM')...
     ' GMT'];
