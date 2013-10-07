@@ -24,15 +24,17 @@ classdef Dbd < handle
     %
     %   'dupsensors': true or false (false by default).  Set to true to
     %       include all sensors (even duplicates) in the instance.
-    %   'sensors': cell array of sensor names to include in the instance.
+    %   'includesensors': cell array of sensor names to include in the instance.
     %       Non-existent sensors are ignored.
+    %   'excludesensors': cell array of sensors or regular expression
+    %       patterns to exclude from the instance.
     %
     % See also DbdGroup
     % ============================================================================
     % $RCSfile: Dbd.m,v $
     % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@Dbd/Dbd.m,v $
-    % $Revision: 1.3 $
-    % $Date: 2013/09/18 14:06:14 $
+    % $Revision: 1.5 $
+    % $Date: 2013/10/03 20:33:03 $
     % $Author: kerfoot $
     % ============================================================================
     %
@@ -151,18 +153,12 @@ classdef Dbd < handle
             % Options
             SENSOR_LIST = {};
             INCLUDE_DUPS = false;
+            EXCLUDE_SENSORS = {};
             for x = 1:2:length(varargin)
                 name = varargin{x};
                 value = varargin{x+1};
                 switch lower(name)
-                    case 'sensors'
-                        if ~iscellstr(value)
-                            error('Dbd:invalidArgument',...
-                                'Value for %s must be a cell array of strings.',...
-                                name);
-                        end
-                        SENSOR_LIST = value;
-                    case 'sensorlist'
+                    case 'includesensors'
                         if ~iscellstr(value)
                             error('Dbd:invalidArgument',...
                                 'Value for %s must be a cell array of strings.',...
@@ -176,6 +172,15 @@ classdef Dbd < handle
                                 name);
                         end
                         INCLUDE_DUPS = value;
+                    case 'excludesensors'
+                        if ischar(value)
+                            value = {value}';
+                        elseif ~iscellstr(value)
+                            error(sprintf('%s:invalidOptionValue', app),...
+                                'Value for option %s must be a string or cell array of strings containing patterns',...
+                                name);
+                        end
+                        EXCLUDE_SENSORS = value;
                     otherwise
                         error('Dbd:invalidArgument',...
                             'Invalid option specified: %s',...
@@ -513,6 +518,11 @@ classdef Dbd < handle
             % Use the first sensor in dbdDepthSensors to set the default
             % obj.depthSensor
             obj.depthSensor = obj.dbdDepthSensors{1};
+            
+            % If EXCLUDE_SENSORS is not empty, remove the sensors specified
+            if ~isempty(EXCLUDE_SENSORS)
+                obj.deleteSensor('regexp', EXCLUDE_SENSORS);
+            end
             
             % Re-index the yo profiles
             obj.indexProfiles();
@@ -979,18 +989,26 @@ classdef Dbd < handle
                 return;
             end
             
-            % Get the gps fixes
+            % Get the gps fixes.  Use m_present_time, if available, since
+            % it's used to timestamp the fixes.  If it's not available, use
+            % the default timestamp sensor
+            TF = intersect('m_present_time', obj.dbdTimestampSensors);
+            if ~isempty(TF)
+                GPS_SENSORS = ['m_present_time'; GPS_SENSORS];
+            else
+                GPS_SENSORS = [obj.timestampSensor; GPS_SENSORS];
+            end
             gps = obj.toArray('sensors', GPS_SENSORS);
             
             % Set to NaN any bad gps fixes(default value from masterdata 
             % is 69696969):
             % abs(lats) > 90
             % abs(lons) > 180
-            gps(abs(gps(:,3)) > 9000,3) = NaN;
-            gps(abs(gps(:,4)) > 18000,4) = NaN;
+            gps(abs(gps(:,4)) > 9000,4) = NaN;
+            gps(abs(gps(:,5)) > 18000,5) = NaN;
             
             % Convert from decimal minutes to decimal degrees
-            gps(:,[3 4]) = dm2dd(gps(:,[3 4]));
+            gps(:,[4 5]) = dm2dd(gps(:,[4 5]));
             
             % Create or replace sensors drv_latitude/drv_longitude with
             % converted m_gps_lat and/or m_gps_lon if they exist and if 
@@ -1004,13 +1022,13 @@ classdef Dbd < handle
                 % is 69696969):
                 % abs(lats) > 90
                 % abs(lons) > 180
-                obj.dbdData.drv_latitude = gps(:,3);
-                obj.dbdData.drv_longitude = gps(:,4);
+                obj.dbdData.drv_latitude = gps(:,4);
+                obj.dbdData.drv_longitude = gps(:,5);
                 
             else
                 % Interpolate the lats and lons using the specified method
                 try
-                    i_lat = interpTimeSeries(gps(:,[1 3]),...
+                    i_lat = interpTimeSeries(gps(:,[3 4]),...
                         'method',...
                         obj.fillGps);
                 catch ME
@@ -1018,10 +1036,10 @@ classdef Dbd < handle
                         'Dbd:fillGps: Interpolation error (%s:%s).\n',...
                         ME.identifier,...
                         ME.message);
-                    i_lat = gps(:,3);
+                    i_lat = gps(:,4);
                 end
                 try
-                    i_lon = interpTimeSeries(gps(:,[1 4]),...
+                    i_lon = interpTimeSeries(gps(:,[3 5]),...
                         'method',...
                         obj.fillGps);
                 catch ME
@@ -1029,7 +1047,7 @@ classdef Dbd < handle
                         'Dbd:fillGps:m_gps_lon: Interpolation error (%s:%s).\n',...
                         ME.identifier,...
                         ME.message);
-                    i_lon = gps(:,1);
+                    i_lon = gps(:,5);
                 end
 
                 % Fix the interpolated latitudes to 5 decimal places and add them

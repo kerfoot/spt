@@ -1,9 +1,15 @@
 function deleteSensor(obj, varargin)
 %
-% Dbd.deleteSensor(REMOVE_SENSORS)
+% Dbd.deleteSensor(SENSOR_LIST, varargin)
 %
-% Permanently delete sensors from the Dbd instance.  The following sensors are
-% protected and cannot be deleted:
+% Permanently delete sensors contained in SENSOR_LIST, which can be a string
+% or a cell array of strings, from the Dbd instance.  
+%
+% Options:
+%   'regexp': STRING or CELL ARRAY OF STRINGS
+%       Specify a list of patterns to match sensors for deletion
+%
+% The following sensors are protected and cannot be deleted:
 %
 %   Dbd.timestampSensor
 %   Dbd.depthSensor
@@ -15,8 +21,8 @@ function deleteSensor(obj, varargin)
 % ============================================================================
 % $RCSfile: deleteSensor.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@Dbd/deleteSensor.m,v $
-% $Revision: 1.2 $
-% $Date: 2013/09/18 13:03:01 $
+% $Revision: 1.3 $
+% $Date: 2013/09/26 20:57:01 $
 % $Author: kerfoot $
 % ============================================================================
 %

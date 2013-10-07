@@ -21,8 +21,8 @@ function pStruct = toProfiles(obj, varargin)
 % ============================================================================
 % $RCSfile: toProfiles.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@Dbd/toProfiles.m,v $
-% $Revision: 1.1.1.1 $
-% $Date: 2013/09/13 18:51:19 $
+% $Revision: 1.2 $
+% $Date: 2013/09/26 20:57:31 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -102,6 +102,8 @@ end
 if isempty(data)
     return;
 end
+% Export gps
+all_gps = obj.toArray('sensors', {'drv_longitude', 'drv_latitude'});
 
 for p = 1:size(obj.profileInds,1)
         
@@ -155,7 +157,7 @@ for p = 1:size(obj.profileInds,1)
     
     % Calculate the mean lon and lat and add them as the meta field
     % 'lonLat'
-    gps = obj.toArray('sensors', {'drv_longitude', 'drv_latitude'});
+    gps = all_gps(r0:r1,:);
     gps(any(isnan(gps(:,[3 4])),2),:) = [];
     if isempty(gps)
         pStruct(p).meta.lonLat = [NaN NaN];
