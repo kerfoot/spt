@@ -1,4 +1,4 @@
-function addSensor(obj, sensor_data, sensor_name, sensor_units)
+function addSensor(obj, sensor_name, sensor_data, sensor_units)
 %
 % DbdGroup.addSensor(sensor_data, sensor_name[, sensor_units])
 %
@@ -19,8 +19,8 @@ function addSensor(obj, sensor_data, sensor_name, sensor_units)
 % ============================================================================
 % $RCSfile: addSensor.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@DbdGroup/addSensor.m,v $
-% $Revision: 1.1.1.1 $
-% $Date: 2013/09/13 18:51:19 $
+% $Revision: 1.2 $
+% $Date: 2013/10/03 20:33:49 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -74,7 +74,7 @@ for x = 1:length(obj.dbds)
     
     r1 = r1 + obj.dbds(x).rows;
     
-    obj.dbds(x).addSensor(sensor_data(r0:r1), sensor_name, sensor_units);
+    obj.dbds(x).addSensor(sensor_name, sensor_data(r0:r1), sensor_units);
     
     r0 = r1 + 1;
     

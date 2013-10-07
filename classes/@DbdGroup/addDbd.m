@@ -10,8 +10,8 @@ function addDbd(obj, dbdInstance)
 % ============================================================================
 % $RCSfile: addDbd.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@DbdGroup/addDbd.m,v $
-% $Revision: 1.1.1.1 $
-% $Date: 2013/09/13 18:51:19 $
+% $Revision: 1.2 $
+% $Date: 2013/10/07 15:35:45 $
 % $Author: kerfoot $
 % ============================================================================
 % 
@@ -23,7 +23,8 @@ if ~isa(dbdInstance, 'Dbd')
         'Only Dbd instances may be added to the DbdGroup.');
 elseif ismember(dbdInstance.segment, obj.segments)
     error('DbdGroup:duplicateDbd',...
-        'Dbd instance is already a member of the DbdGroup.');
+        '%s: Dbd instance is already a member of the DbdGroup.',...
+        dbdInstance.segment);
 end
 
 % Add it to obj.dbds
