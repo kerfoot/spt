@@ -31,6 +31,10 @@ function dgroup = dbds2DbdGroup(dbd_list, varargin)
 %       Dbd instance, if available.  If not available, a default sensor is 
 %       chosen automatically.
 %
+%   'convertgps', [LOGICAL]
+%       Set to true to convert m_gps_lat and m_gps_lon to decimal degrees and
+%       add as new sensors drv_m_gps_lat and drv_m_gps_lon.  Default is true.
+%
 %   'replace', [LOGICAL]
 %       Set to true to replace existing Dbd instances for which the size of 
 %       the source data file has changed.  Default is true.
@@ -73,8 +77,8 @@ function dgroup = dbds2DbdGroup(dbd_list, varargin)
 % ============================================================================
 % $RCSfile: dbds2DbdGroup.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/proc/dbds2DbdGroup.m,v $
-% $Revision: 1.1.1.1 $
-% $Date: 2013/09/13 18:51:18 $
+% $Revision: 1.5 $
+% $Date: 2013/10/07 16:01:12 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -135,7 +139,8 @@ INTERP_METHODS = {'none',...
     }';
 
 % Default options
-SENSOR_LIST = {};
+INCLUDE_SENSORS = {};
+EXCLUDE_SENSORS = {};
 TIMESTAMP_SENSORS = {};
 DEPTH_SENSORS = {};
 REPLACE = true;
@@ -158,14 +163,23 @@ for x = 1:2:length(varargin)
     
     switch lower(name)
         
-        case 'sensors'
+        case 'includesensors'
             if ischar(value)
                 value = {value}';
             elseif ~iscellstr(value)
                 error(sprintf('%s:invalidOptionValue', app),...
                     'Value for option must be a string or cell array of strings.');
             end
-            SENSOR_LIST = value;
+            INCLUDE_SENSORS = value;
+            
+        case 'excludesensors'
+            if ischar(value)
+                value = {value}';
+            elseif ~iscellstr(value)
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option must be a string or cell array of strings.');
+            end
+            EXCLUDE_SENSORS = value;
             
         case 'timestampsensor'
             if ischar(value)
@@ -329,11 +343,6 @@ if FILL_GPS
         '>> Filling GPS fixes.\n');
 end
 
-% Set FILL_GPS to an empty string if 'none' specified
-% % % % % if strcmp(FILL_GPS, 'none')
-% % % % %     FILL_GPS = '';
-% % % % % end
-
 for d = 1:length(dbd_list)
     
 % % % % %     if isequal(d,53)
@@ -341,9 +350,13 @@ for d = 1:length(dbd_list)
 % % % % %     end
     
     % Create the Dbd instance
+    fprintf(1,...
+        ' > Creating Dbd instance: %s\n',...
+        dbd_list{d});
     try
         dbd = Dbd(dbd_list{d},...
-            'sensors', SENSOR_LIST);
+            'includesensors', INCLUDE_SENSORS,...
+            'excludesensors', EXCLUDE_SENSORS);
     catch ME
         fprintf(2,...
             'Skipping source file: %s (%s: %s)\n',...
@@ -458,7 +471,7 @@ for d = 1:length(dbd_list)
     % Derive and add ctd sensors if specified via the 'addctdsensors'
     % option
     if CTD_SENSORS
-        addDbdCtdSensors(dbd);
+        addCtdSensors(dbd);
     end
     
     % Convert m_gps_lon and m_gps_lat to decimal degrees, if they exist, and 
@@ -494,3 +507,10 @@ for d = 1:length(dbd_list)
     end
 end
 
+% Calculate and add distance along track if new segment were added
+if ~isempty(dgroup.newSegments)
+    fprintf(1,...
+        '%s: Calculating and adding distance along track to the DbdGroup instance\n',...
+        app);
+    addTrackDistance(dgroup);
+end
