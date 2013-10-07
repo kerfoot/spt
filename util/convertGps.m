@@ -1,6 +1,6 @@
 function convertGps(obj, varargin)
 %
-% convertDbdGps(obj, varargin)
+% convertGps(obj, varargin)
 %
 % Convert m_gps_lat and m_gps_lon from units of decimal minutes to decimal
 % degrees and add the new sensors to the Dbd instance as drv_m_gps_lat and
@@ -25,8 +25,8 @@ function convertGps(obj, varargin)
 % ============================================================================
 % $RCSfile: convertGps.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/util/convertGps.m,v $
-% $Revision: 1.1 $
-% $Date: 2013/10/04 13:00:03 $
+% $Revision: 1.2 $
+% $Date: 2013/10/07 18:16:54 $
 % $Author: kerfoot $
 % ============================================================================
 %
