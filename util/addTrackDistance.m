@@ -3,9 +3,9 @@ function addTrackDistance(obj, varargin)
 % addTrackDistance(obj, varargin)
 %
 % Convert m_gps_lat and m_gps_lon from units of decimal minutes to decimal
-% degrees and add the new sensors to the Dbd instance as drv_m_gps_lat and
-% drv_m_gps_lon.  'drv_' is prepended to the original sensor names to denote 
-% that they are derived.  
+% degrees, calculate the distance along track and add the new sensor to the 
+% Dbd instance as drv_distance_along_track.  'drv_' is prepended to the 
+% original sensor names to denote that they are derived.  
 %
 % If the lat and lon (m_gps_lat and m_gps_lon, respectively) are not
 % contained in the Dbd instance, the derived sensors are still added and
@@ -25,8 +25,8 @@ function addTrackDistance(obj, varargin)
 % ============================================================================
 % $RCSfile: addTrackDistance.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/util/addTrackDistance.m,v $
-% $Revision: 1.2 $
-% $Date: 2013/10/04 12:59:39 $
+% $Revision: 1.3 $
+% $Date: 2013/10/08 20:32:01 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -77,16 +77,30 @@ for x = 1:2:length(varargin)
     end
 end
 
+% Initiliaze the track distance array
+if isa(obj, 'Dbd')
+    track_distance = nan(obj.rows,1);
+elseif isa(obj, 'DbdGroup')
+    track_distance = nan(sum(obj.rows),1);
+end
+
+% Add the initialized array as a new sensor
+obj.addSensor('drv_distance_along_track',...
+    track_distance,...
+    'kilometers');
+
 % Make sure the latitude sensor is not empty
 if isempty(LAT_SENSOR)
-    error(sprintf('%s:emptyValue', app),...
+    warning(sprintf('%s:emptyValue', app),...
         'No latitude sensor specified');
+    return;
 end
 
 % Make sure the longitude sensor is not empty
 if isempty(LON_SENSOR)
-    error(sprintf('%s:emptyValue', app),...
+    warning(sprintf('%s:emptyValue', app),...
         'No longitude sensor specified');
+    return;
 end
 
 % Figure out which timestamp to use for interpolation.  We'd prefer
@@ -127,9 +141,6 @@ gps(:,1) = fillMissingValues(gps(:,1));
 % Interpolate the GPS fixes
 gps(:,2) = interpTimeSeries(gps(:,[1 2]));
 gps(:,3) = interpTimeSeries(gps(:,[1 3]));
-
-% Initiliaze the track distance array
-track_distance = nan(size(gps,1),1);
 
 % Find all valid (non-NaN) gps fixes
 r = find(all(~isnan(gps(:,[2 3])),2));
