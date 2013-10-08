@@ -6,21 +6,46 @@ function [tsInds, r] = findYoExtrema(tz, varargin)
 % (profiles start/stop) found in the time-depth array, tz.  All indices are
 % returned.
 %
+% Options:
+%   'plot': LOGICAL
+%       Set to true to create a plot of the indexed profiles.
+%
+%   'interval': NUMBER
+%       Specify an alternate interval for resampling the time-series prior
+%       to indexing.  Default value is 10 seconds.
+%
 % Use filterYoExtrema.m to remove invalid/imcomplete profiles.
 %
 % See also filterYoExtrema
 % ============================================================================
 % $RCSfile: findYoExtrema.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/bin/findYoExtrema.m,v $
-% $Revision: 1.1 $
-% $Date: 2013/10/04 13:00:58 $
+% $Revision: 1.2 $
+% $Date: 2013/10/08 13:25:47 $
 % $Author: kerfoot $
 % ============================================================================
 %
 
+app = mfilename;
+
 % Return values
 r = []; % Row indices
 tsInds = []; % tz(r,1) values
+
+[rows,cols] = size(tz);
+if rows < 2
+    warning(sprintf('%s:dimensions', app),...
+        'The time-depth series must have at least 2 rows.\n');
+    return;
+elseif ~isequal(cols,2)
+    warning(sprintf('%s:dimensions', app),...
+        'The time-depth series must have exactly 2 columns.\n');
+    return;
+elseif all(isnan(tz))
+    warning(sprintf('%s:dimensions', app),...
+        'The time-depth series contains all NaN values.\n');
+    return;
+end
 
 yoProps = struct('Marker', '.',...
     'Color', 'k',...
@@ -42,17 +67,23 @@ for x = 1:2:length(varargin)-1
     
     switch lower(name)
         case 'plot'
-            if ~islogical(value)
-                error(['Option: ' name ' requires a logical value (true|false)']);
+            if ~isequal(numel(value),1) || ~islogical(value)
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'The value for option %s must be a logical scalar.',...
+                    name);
             end
             plotFlag = value;
         case 'interval'
             if ~isequal(length(value),1) || ~isnumeric(value) || value <= 0
-                error(['Option: ' name ' must be numeric and > 0']);
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'The value for option %s must be a postive numeric scalar.',...
+                    name);
             end
             INT = value;
         otherwise
-            error(['Invalid option: ' name]);
+            error(sprintf('%s:invalidOption', app),...
+                'Invalid option: %s',...
+                name);
     end
 end
 
@@ -75,7 +106,7 @@ if size(tz,1) < 2
 end
 
 % Interpolate the time-series to a fixed time grid
-ts = [min(tz(:,1)):INT:max(tz(:,1))]';
+ts = (min(tz(:,1)):INT:max(tz(:,1)))';
 try
     itz = [ts interp1(tz(:,1), tz(:,2), ts)];
 catch ME
@@ -83,8 +114,13 @@ catch ME
     return;
 end
 
-% Smooth
-itz(:,2) = smooth(itz(:,2), ceil(INT/2));
+% Smooth the signal before searching for min/max values
+s = which('smooth');
+if ~isempty(s)
+    itz(:,2) = smooth(itz(:,2), ceil(INT/2));
+else
+    itz(:,2) = pmsmooth(itz(:,2), ceil(INT/2));
+end
 
 % Calculate delta depth
 dZ = diff(itz(:,2));
@@ -92,8 +128,13 @@ dZ = diff(itz(:,2));
 dZ(dZ <= 0) = -1;
 dZ(dZ >= 0) = 1;
 
-% Filter dZ
-dZ = smooth(dZ, ceil(INT/2));
+% Smooth dZ
+if ~isempty(s)
+    dZ = smooth(dZ, ceil(INT/2));
+else
+    dZ = pmsmooth(dZ, ceil(INT/2));
+end
+
 % Replace negative values with -1 and positive values with 1
 dZ(dZ <= 0) = -1;
 dZ(dZ >= 0) = 1;
