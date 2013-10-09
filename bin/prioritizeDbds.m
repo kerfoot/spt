@@ -1,5 +1,19 @@
 function fDbds = prioritizeDbds(dbdsList, varargin)
-
+%
+% fDbds = prioritizeDbds(dbdsList, varargin)
+%
+% Takes a list of glider ascii segment files of mixed type (*.sbd,
+% *.dbd,...) and sorts the list to prioritize the files based on the file
+% type.  The default sort order is:
+%
+%   dbd
+%   sf_dbd
+%   sbd
+%   mbd
+%   ebd
+%   tbd
+%   nbd
+%
 fDbds = {};
 
 % Default prioritization order
