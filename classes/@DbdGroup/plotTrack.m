@@ -12,8 +12,8 @@ function h = plotTrack(obj, varargin)
 % ============================================================================
 % $RCSfile: plotTrack.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@DbdGroup/plotTrack.m,v $
-% $Revision: 1.1.1.1 $
-% $Date: 2013/09/13 18:51:19 $
+% $Revision: 1.2 $
+% $Date: 2013/10/12 13:49:43 $
 % $Author: kerfoot $
 % ============================================================================
 % 
@@ -32,9 +32,18 @@ if length(intersect(gps_sensors, obj.sensors)) ~= length(gps_sensors)
         'DbdGroup instance is missing the required GPS sensors (m_gps_lat, m_gps_lon).');
 end
 
-[gps, gps_sensors] = obj.toArray('sensors', gps_sensors);
+% Use m_present_time, if available.  Otherwise, use the default timestamp
+% sensor
+if ismember('m_present_time', obj.sensors)
+    gps_sensors{end+1} = 'm_present_time';
+    [gps, gps_sensors] = obj.toArray('sensors', gps_sensors);
+    gps = gps(:,[end 3 4]);
+else
+    [gps, gps_sensors] = obj.toArray('sensors', gps_sensors);
+    gps(:,2) = [];
+end
 % Remove depth (column 2)
-gps(:,2) = [];
+% % % % % gps(:,2) = [];
 
 % Set bad fixes to NaN
 gps(any(gps(:,[2 3]) > 18000,2),:) = NaN;
@@ -50,7 +59,7 @@ end
 
 % Convert any unix times to datenums
 r = find(gps(:,1) > datenum2epoch(datenum(1990,1,1,0,0,0)));
-gps(r,:) = epoch2datenum(gps(r,:));
+gps(r,1) = epoch2datenum(gps(r,1));
 
 % Convert from NMEA to decimal degrees
 gps(:,[2 3]) = dm2dd(gps(:,[2 3]));
@@ -77,8 +86,8 @@ function h = plotClickableTrack(tsLatLon, varargin)
 % ============================================================================
 % $RCSfile: plotTrack.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@DbdGroup/plotTrack.m,v $
-% $Revision: 1.1.1.1 $
-% $Date: 2013/09/13 18:51:19 $
+% $Revision: 1.2 $
+% $Date: 2013/10/12 13:49:43 $
 % $Author: kerfoot $
 % ============================================================================
 %
