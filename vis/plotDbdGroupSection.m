@@ -1,4 +1,4 @@
-function iTemplate = plotDbdGroupSection(obj, sensor, varargin)
+function fname_template = plotDbdGroupSection(obj, sensor, varargin)
 %
 % Usage: iNames = plotDbdGroupSection(obj, sensor, varargin)
 %
@@ -25,14 +25,16 @@ function iTemplate = plotDbdGroupSection(obj, sensor, varargin)
 % ============================================================================
 % $RCSfile: plotDbdGroupSection.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/vis/plotDbdGroupSection.m,v $
-% $Revision: 1.3 $
-% $Date: 2013/10/01 12:54:02 $
+% $Revision: 1.4 $
+% $Date: 2013/10/21 12:55:52 $
 % $Author: kerfoot $
 % $Name:  $
 % ============================================================================
 %
 
-iTemplate = '';
+app = mfilename;
+
+fname_template = '';
 
 % Validate args
 if nargin < 2
@@ -50,6 +52,11 @@ elseif isempty(sensor) ||...
         'Second argument must be a valid sensor name.');
     return;
 end
+
+% Create a figure that is initially invisible to account for the colormap
+% call
+figure('PaperPosition', [0 0 11 8.5],...
+    'Visible', 'on');
 
 % Add this value to the max bathymetry value to get some spacing from the
 % bottom of the plot
@@ -69,8 +76,8 @@ cbarTypes = {'none',...
     }';
 % Default option values
 PLOT_BATHY = true;
-MIN_BATHY = 1;
-PRO_TYPE = 'all';
+MIN_BATHY = 5;
+PRO_DIR = 'all';
 t0 = NaN;
 t1 = NaN;
 CLIM = [];
@@ -79,6 +86,7 @@ XAXIS_SENSOR = '';
 YMIN = NaN;
 YMAX = NaN;
 sensorLabel = '';
+COLORMAP = jet(64);
 
 % Process options
 for x = 1:2:length(varargin)
@@ -91,77 +99,85 @@ for x = 1:2:length(varargin)
             if isempty(value) ||...
                     ~islogical(value) ||...
                     ~isequal(numel(value),1)
-                warning([mfilename ':invalidOptionValue'],...
-                    ['Value for option ' name ' must be logical.']);
-                return;
+                close(gcf);
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a true or false',...
+                    name);              
             end
             PLOT_BATHY = value;
         case 'minbathy'
             if isempty(value) ||...
                     ~isequal(numel(value),1) ||...
                     ~isnumeric(value)
-                warning([mfilename ':invalidOptionValue'],...
-                    ['Value for option ' name ' must be a 1-element number.']);
-                return;
+                close(gcf);
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a numeric scalar',...
+                    name);
             end
             MIN_BATHY = value;
-        case 'protype'
+        case 'profiledir'
             if isempty(value) ||...
                     ~ischar(value) ||...
                     ~ismember(value, profileTypes)
-                warning([mfilename ':invalidOptionValue'],...
-                    ['Value for option ' name ' must be a non-empty string.']);
-                return;
+                close(gcf);
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a non-empty string',...
+                    name);
             end
-            PRO_TYPE = value;
+            PRO_DIR = value;
         case 'starttime'
             if isempty(value) ||...
                    ~isequal(numel(value),1) ||...
                    ~isnumeric(value) 
-               warning([mfilename ':invalidOptionValue'],...
-                   ['Value for option ' name ' must be of type datenum.']);
-               return;
+               close(gcf);
+               error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a datenum.m type',...
+                    name);
             end
             t0 = value;
         case 'endtime'
             if isempty(value) ||...
                    ~isequal(numel(value),1) ||...
                    ~isnumeric(value) 
-               warning([mfilename ':invalidOptionValue'],...
-                   ['Value for option ' name ' must be of type datenum.']);
-               return;
+               close(gcf);
+               error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a datenum.m type',...
+                    name);
             end
             t1 = value;
         case 't0'
             if isempty(value) ||...
                    ~isequal(numel(value),1) ||...
                    ~isnumeric(value) 
-               warning([mfilename ':invalidOptionValue'],...
-                   ['Value for option ' name ' must be of type datenum.']);
-               return;
+               close(gcf);
+               error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a datenum.m type',...
+                    name);
             end
             t0 = value;
         case 't1'
             if isempty(value) ||...
                    ~isequal(numel(value),1) ||...
                    ~isnumeric(value) 
-               warning([mfilename ':invalidOptionValue'],...
-                   ['Value for option ' name ' must be of type datenum.']);
-               return;
+               close(gcf);
+               error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a datenum.m type',...
+                    name);
             end
             t1 = value;
         case 'colorbar'
             if isempty(value) ||...
                     ~ischar(value)
-                warning([mfilename ':invalidOptionValue'],...
-                    ['Value for option ' name ' must be a non-empty string.']);
-                return;
+                close(gcf);
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a non-empty string',...
+                    name);
             end
             m = strncmpi(value, cbarTypes, 1);
             if ~any(m)
+                close(gcf);
                 warning([mfilename ':invalidOptionValue'],...
                     ['Value for option ' name ' must be one of the following:']);
-                cbarTypes
                 return;
             end
             CBAR_TYPE = cbarTypes{m};
@@ -169,61 +185,88 @@ for x = 1:2:length(varargin)
             if isempty(value) ||...
                     ~isequal(numel(value),2) ||...
                     ~all(isnumeric(value))
-                warning([mfilename ':invalidOptionValue'],...
-                    ['Value for option ' name ' must be a 2-element numeric vector.']);
-                return;
+                close(gcf);
+               error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a 2-element numeric array',...
+                    name);
             end
             CLIM = value;
         case 'xsensor'
             if isempty(value) ||...
                     ~ischar(value) ||...
                     ~ismember(value, obj.sensors)
-                warning([mfilename ':invalidOptionValue'],...
-                    ['Value for option ' name ' must be an existing DbdGroup sensor.']);
-                return;
+                close(gcf);
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'Option %s: sensor does not exist',...
+                    name);
             end
             XAXIS_SENSOR = value;
         case 'ymin'
             if ~isequal(numel(value),1) ||...
                     ~isnumeric(value)
-                warning([mfilename ':invalidOptionValue'],...
-                    ['Value for option ' name ' must be a 1-element number.']);
-                return;
+                close(gcf);
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a numeric scalar',...
+                    name);
             end
             YMIN = value;
         case 'ymax'
             if ~isequal(numel(value),1) ||...
                     ~isnumeric(value)
-                warning([mfilename ':invalidOptionValue'],...
-                    ['Value for option ' name ' must be a 1-element number.']);
-                return;
+                close(gcf);
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a numeric scalar',...
+                    name);
             end
             YMAX = value;
         case 'sensorlabel'
             if isempty(value) || ~ischar(value)
-                fprintf(1,...
-                    'Value for option %s must be a string.\n',...
-                    value);
-                return;
+                close(gcf);
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a non-empty string',...
+                    name);
             end
             sensorLabel = value;
+        case 'colormap'
+            if ~isnumeric(value) ||...
+                    isempty(value) ||...
+                    ~isequal(size(value,2), 3)
+                close(gcf);
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be an Mx3 array',...
+                    name);
+            end
+            COLORMAP = value;
         otherwise
-            warning([mfilename ':invalidOption'],...
-                ['Invalid option: ' name]);
-            return;
+            close(gcf);
+            error(sprintf('%s:invalidOption', app),...
+                    'Invalid option specified: %s',...
+                    name);
     end
 end
 
-% If MIN_BATHY is non-NaN, set PLOT_BATHY to true as we'll assume if the user
-% entered a min bathymetry value, they want to plot the bathymetry
-if MIN_BATHY >= 1
-    PLOT_BATHY = true;
-end
+set(gcf, 'Visible', 'on');
+
 % Variable to hold bathymetry if we're going to plot it
 bathy = [];
 
 % Get the data
 if isempty(XAXIS_SENSOR)
+    
+    % If no x-axis sensor was specified, we'll use the timestamp values
+    % from obj.timestampSensors.  We need to check each instance to see if
+    % the obj.dbds(x).timestampSensor is a unix timestamp and switch it the
+    % corresponding datenum sensor.  Keep track of the indices as we'll
+    % need to change it back to the original sensor once we're done since
+    % the DbdGroup is a reference to the data structure
+    epoch_matches = regexp(obj.timestampSensors, '_datenum$');
+    % Find the Dbd instance index where the match failed
+    r = find(cellfun(@isempty, epoch_matches) == 1);
+    for x = 1:length(r)
+        obj.dbds(r(x)).timestampSensor = sprintf('drv_%s_datenum',...
+            obj.dbds(r(x)).timestampSensor);
+    end
+    
     sensorList = {sensor,...
         'drv_proInds',...
         'drv_proDir',...
@@ -234,16 +277,31 @@ if isempty(XAXIS_SENSOR)
     
     % Grab bathy data if plotting it
     if PLOT_BATHY
-        bathy = obj.toArray('sensors', 'm_water_depth',...
-            't0', t0,...
-            't1', t1);
+        if ismember('drv_m_present_time_datenum', obj.sensors)
+            bathy_sensors = {'drv_m_present_time_datenum',...
+                'm_water_depth',...
+                }';
+            bathy = obj.toArray('sensors', bathy_sensors,...
+                't0', t0,...
+                't1', t1);
+            % Remove default timestamp and depth, keeping only the sensors
+            % in bathy_sensors
+            bathy(:,[1 2]) = [];
+        else
+            bathy = obj.toArray('sensors', 'm_water_depth',...
+                't0', t0,...
+                't1', t1);
+            % Remove default depth, keeping timestamp and m_water_depth
+            bathy(:,2) = [];
+        end
+        
         % Fill in missing timestamps if there are any
         if any(isnan(bathy(:,1)))
             bathy(:,1) = fillMissingValues(bathy(:,1),...
                 'interpmethod', 'linear');
         end
         bathy(any(isnan(bathy),2),:) = [];
-        bathy(:,2) = [];
+
     end
     
 else
@@ -272,6 +330,12 @@ else
     end
 end
 
+% Change the obj.dbds(x).timestampSensor values back to their epoch time,
+% if used
+for x = 1:length(r)
+    obj.dbds(r(x)).timestampSensor = obj.dbds(r(x)).timestampSensor(5:end-8);
+end
+
 % Get rid of all rows containing at least one nan
 data(any(isnan(data),2),:) = [];
 if isempty(data)
@@ -282,7 +346,7 @@ end
 
 % Eliminate other profile types if specified by the user via the 'protype'
 % option
-switch PRO_TYPE(1)
+switch PRO_DIR(1)
     case 'd'
         data(data(:,5) >= 0,:) = [];
     case 'u'
@@ -294,13 +358,21 @@ if isempty(CLIM)
     CLIM = [min(data(:,3)) max(data(:,3))];
 end
 
-% Create the figure
-figure('PaperPosition', [0 0 11 8.5]);
-
 % Plot the data
-h = fast_scatter(data(:,1), data(:,2), data(:,3),...
+h = fastScatter(data(:,1), data(:,2), data(:,3),...
     'colorbar', CBAR_TYPE,...
+    'colormap', COLORMAP,...
     'clim', CLIM);
+
+% Find the axes in the current figure
+ax = findobj(gcf, 'Type', 'axes');
+% Store the data axes, which was created first and has a lower handle
+% number
+data_ax = min(ax);
+
+% Figure formatting
+set(gcf,...
+    'PaperPosition', [0 0 11 8.5]);
 
 if ~isempty(bathy)
     if ~isnan(MIN_BATHY)
@@ -308,10 +380,16 @@ if ~isempty(bathy)
     end
 end
 
+% Find the maximum depth of the sensor data
+MAX_DEPTH = max(data(:,2));
+
 if ~isempty(bathy)
-    bathy = [min(bathy(:,1)) max(bathy(:,2)) + BATHY_OFFSET;...
+    % Since we're plotting bathymetry, we need to find the maximum depth of
+    % both the bathymetry and the sensors dataset
+    MAX_DEPTH = max([bathy(:,2); data(:,2)]);
+    bathy = [min(bathy(:,1)) MAX_DEPTH+BATHY_OFFSET;...
         bathy;...
-        max(bathy(:,1)) max(bathy(:,2)) + BATHY_OFFSET];
+        max(bathy(:,1)) MAX_DEPTH+BATHY_OFFSET];
     % Plot it
     hb = fill(bathy(:,1), bathy(:,2), 'k');
     set(hb, 'Tag', 'bathy');
@@ -319,29 +397,15 @@ end
 
 % Set min/max values for y-axis (defaults to min/max values if not specified 
 % by 'ymin'/'ymax' options)
-if isnan(YMIN);
-    z = data(~isnan(data(:,2)),2);
-    YMIN = min(z);
+if isnan(YMIN)
+    YMIN = 0;
 end
 if isnan(YMAX)
-    z = [bathy(:,2); data(:,2)];
-    z(isnan(z)) = [];
-    YMAX = max(z);
+    YMAX = MAX_DEPTH;
 end    
-    
-% Format axes
-axis tight;
-dasp = get(gca, 'DataAspectRatio');
-set(gca,...
-    'ydir', 'reverse',...
-    'ylim', [YMIN YMAX],...
-    'box', 'on',...
-    'tickdir', 'out',...
-    'linewidth', 1,...
-    'DataAspectRatio', [dasp(1)/2 dasp(2:3)]);
 
 % Label the colorbar if it exists
-cb = findobj('Tag', 'Colorbar');
+cb = findobj(gcf, 'Tag', 'Colorbar');
 if ~isempty(cb)
     if ~isempty(sensorLabel)
         cbarLabel = [sensorLabel ' (' obj.sensorUnits.(sensor) ')'];
@@ -354,22 +418,25 @@ if ~isempty(cb)
 end
 
 % Set t0 and t1 to the minimum and maximum timestamp values, respectively
-if isnan(t0) || isnan(t1)
-    ts = obj.toArray('sensors', {'null'});
-    if isnan(t0)
-        t0 = min(ts(:,1));
-    end
-    if isnan(t1)
-        t1 = max(ts(:,1));
-    end
+if isnan(t0)
+	t0 = min(obj.startDatenums);
 end
-% Convert unix times (which appear to be very large datenums) to datenums
-if t0 > datenum(3000,1,1,0,0,0)
-    t0 = epoch2datenum(t0);
+if isnan(t1)
+	t1 = max(obj.startDatenums);
 end
-if t1 > datenum(3000,1,1,0,0,0)
-    t1 = epoch2datenum(t1);
-end
+
+% Format axes
+axis tight;
+% Save the dataaspectrio
+dasp = get(data_ax, 'DataAspectRatio');
+set(data_ax,...
+    'ydir', 'reverse',...
+    'ylim', [YMIN YMAX],...
+    'xlim', [t0 t1],...
+    'box', 'on',...
+    'tickdir', 'out',...
+    'linewidth', 1,...
+    'DataAspectRatio', [dasp(1)/2 dasp(2:3)]);
 
 % Title the plot
 tString = [obj.dbds(1).glider...
@@ -380,7 +447,7 @@ tString = [obj.dbds(1).glider...
     ' GMT'];
 title(tString, 'FontSize', 14);
 
-iTemplate = [datestr(t0,'yyyymmddTHHMM')...
+fname_template = [datestr(t0,'yyyymmddTHHMM')...
     '-'...
     datestr(t1,'yyyymmddTHHMM')...
     '_'...
