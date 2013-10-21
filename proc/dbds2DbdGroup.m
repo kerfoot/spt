@@ -77,8 +77,8 @@ function dgroup = dbds2DbdGroup(dbd_list, varargin)
 % ============================================================================
 % $RCSfile: dbds2DbdGroup.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/proc/dbds2DbdGroup.m,v $
-% $Revision: 1.6 $
-% $Date: 2013/10/07 18:17:36 $
+% $Revision: 1.7 $
+% $Date: 2013/10/10 18:56:31 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -349,6 +349,15 @@ for d = 1:length(dbd_list)
 % % % % %         keyboard;
 % % % % %     end
     
+    % Make sure the file exists (avoid OS race condition and dual
+    % processing)
+    if ~exist(dbd_list{d}, 'file')
+        fprint('%s: File %s not found.\n',...
+            app,...
+            dbd_list{d});
+        continue;
+    end
+    
     % Create the Dbd instance
     fprintf(1,...
         ' > Creating Dbd instance: %s\n',...
@@ -359,10 +368,10 @@ for d = 1:length(dbd_list)
             'excludesensors', EXCLUDE_SENSORS);
     catch ME
         fprintf(2,...
-            'Skipping source file: %s (%s: %s)\n',...
-            dbd_list{d},...
+            '%s:%s: %s\n',...
             ME.identifier,...
-            ME.message);
+            ME.message,...
+            dbd_list{d});
         continue;
     end
     
