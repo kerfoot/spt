@@ -16,8 +16,8 @@ function deleteSensor(obj, varargin)
 % ============================================================================
 % $RCSfile: deleteSensor.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@DbdGroup/deleteSensor.m,v $
-% $Revision: 1.2 $
-% $Date: 2013/09/18 13:03:08 $
+% $Revision: 1.3 $
+% $Date: 2013/11/27 14:36:48 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -68,8 +68,9 @@ else
                     error(sprintf('%s:invalidOptionValue', app),...
                         'Value for option %s must be a string or cell array of strings containing patterns',...
                         name);
-                end
-                PATTERNS = value;
+                else
+                    PATTERNS = value;
+                end               
             otherwise
                 error(sprintf('%s:invalidOptionValue', app),...
                     'Value for option %s must be a string or cell array of strings containing patterns',...
