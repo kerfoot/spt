@@ -26,8 +26,8 @@ function dbd_struct = toDbdStruct(obj, varargin)
 % ============================================================================
 % $RCSfile: toDbdStruct.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@DbdGroup/toDbdStruct.m,v $
-% $Revision: 1.1.1.1 $
-% $Date: 2013/09/13 18:51:19 $
+% $Revision: 1.2 $
+% $Date: 2013/11/27 14:37:20 $
 % $Author: kerfoot $
 % ============================================================================
 % 
@@ -111,16 +111,21 @@ dbd_struct = orderfields(dbd_struct);
 dbd_struct.data = data;
 
 % Create and add the source info
-dbd_struct.source = {obj.segment,...
-    1,...
-    obj.rows,...
-    obj.the8x3filename,...
-    obj.filetype,...
-    obj.startTime,...
-    obj.bytes};
+dbd_struct.source = cell(length(obj.segments),7);
+r = 1;
+for s = 1:length(obj.dbds)
+    dbd_struct.source(s,:) = {obj.dbds(s).segment,...
+        r,...
+        r + obj.dbds(s).rows - 1,...
+        obj.dbds(s).the8x3filename,...
+        obj.dbds(s).filetype,...
+        obj.dbds(s).startTime,...
+        obj.dbds(s).bytes};
+    r = dbd_struct.source{s,3} + 1;
+end
 
 % Create and add the metdata
-dbd_struct.meta.glider = obj.glider;
+dbd_struct.meta.glider = obj.dbds(1).glider;
 dbd_struct.meta.deployDate = [];
 dbd_struct.meta.recoverDate = [];
 dbd_struct.meta.project = '';
@@ -129,9 +134,9 @@ dbd_struct.meta.comments = {};
 dbd_struct.meta.deploymentStatus = '';
 dbd_struct.meta.recovered = [];
 dbd_struct.meta.qc = '';
-configParams = struct('DEPTH_SENSOR', obj.depthSensor,...
-    'PRESSURE_SENSOR', obj.depthSensor,...
-    'TIMESTAMP_SENSOR', obj.timestampSensor);
+configParams = struct('DEPTH_SENSOR', obj.depthSensors,...
+    'PRESSURE_SENSOR', obj.depthSensors,...
+    'TIMESTAMP_SENSOR', obj.timestampSensors);
 dbd_struct.meta.configParams = configParams;
 dbd_struct.meta.fileType = 'DbdGroup';
 dbd_struct.meta.filename = '';
