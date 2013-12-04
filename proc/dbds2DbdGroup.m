@@ -39,7 +39,7 @@ function dgroup = dbds2DbdGroup(dbd_list, varargin)
 %       Set to true to replace existing Dbd instances for which the size of 
 %       the source data file has changed.  Default is true.
 %
-%   'fillgps', [LOGICAL]
+%   'processgps', [LOGICAL]
 %       Set to true to linearly interpolate measured gps fixes and store the
 %       values ('drv_longitude' and 'drv_latitude').  Interpolation is 
 %       only performed on segments in which the segment is bound by a pre-dive
@@ -77,8 +77,8 @@ function dgroup = dbds2DbdGroup(dbd_list, varargin)
 % ============================================================================
 % $RCSfile: dbds2DbdGroup.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/proc/dbds2DbdGroup.m,v $
-% $Revision: 1.7 $
-% $Date: 2013/10/10 18:56:31 $
+% $Revision: 1.9 $
+% $Date: 2013/12/04 17:07:10 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -153,7 +153,7 @@ PRO_MIN_TIME_SPAN = NaN;
 PRO_MIN_NUM_POINTS = NaN;
 PRO_MIN_DEPTH = NaN;
 PRO_MIN_DEPTH_SPAN = NaN;
-CONVERT_GPS = true;
+PROCESS_GPS = true;
 % Set to false to prevent saving of individual dbd instances
 SAVE_DBD_DIR = '';
 for x = 1:2:length(varargin)
@@ -310,13 +310,13 @@ for x = 1:2:length(varargin)
             end
             PRO_MIN_DEPTH_SPAN = value;
             
-        case 'convertgps'
+        case 'processgps'
             if ~isequal(numel(value),1) || ~islogical(value)
                 error(sprintf('%s:invalidOptionValue', app),...
                     'Value for option %s must be a logical scalar.',...
                     name);
             end
-            CONVERT_GPS = value;
+            PROCESS_GPS = value;
             
         case 'dbddir'
             if ~ischar(value) || ~isdir(value)
@@ -477,18 +477,6 @@ for d = 1:length(dbd_list)
         dbd.proMinDepthSpan = PRO_MIN_DEPTH_SPAN;
     end
     
-    % Derive and add ctd sensors if specified via the 'addctdsensors'
-    % option
-    if CTD_SENSORS
-        addCtdSensors(dbd);
-    end
-    
-    % Convert m_gps_lon and m_gps_lat to decimal degrees, if they exist, and 
-    % add as drv_m_gps_lat and drv_m_gps_lon
-    if CONVERT_GPS
-        convertGps(dbd);
-    end
-    
     % Save the Dbd instance if SAVE_DBD_DIR contains a valid directory
     if ~isempty(SAVE_DBD_DIR)
         try
@@ -516,10 +504,31 @@ for d = 1:length(dbd_list)
     end
 end
 
-% Calculate and add distance along track if new segment were added
-if ~isempty(dgroup.newSegments)
+if isempty(dgroup.newSegments)
+    return;
+end
+
+% Derive and add ctd sensors if specified via the 'addctdsensors'
+% option
+if CTD_SENSORS
+    fprintf(1,...
+        '%s: Deriving and adding additional CTD parameters\n',...
+        app);
+    addCtdSensors(dgroup);
+end
+
+% Convert m_gps_lon and m_gps_lat to decimal degrees, if they exist, and 
+% add as drv_m_gps_lat and drv_m_gps_lon
+if PROCESS_GPS
+    fprintf(1,...
+        '%s: QCing DbdGroup instance gps fixes\n',...
+        app);
+    processGps(dgroup,...
+        'interp', 'linear');
     fprintf(1,...
         '%s: Calculating and adding distance along track to the DbdGroup instance\n',...
         app);
-    addTrackDistance(dgroup);
+    addTrackDistance(dgroup,...
+        'latsensor', 'drv_latitude',...
+        'lonsensor', 'drv_longitude');
 end
