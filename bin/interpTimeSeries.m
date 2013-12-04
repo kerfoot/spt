@@ -16,8 +16,8 @@ function interpData = interpTimeSeries(timeSeries, varargin)
 % ============================================================================
 % $RCSfile: interpTimeSeries.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/bin/interpTimeSeries.m,v $
-% $Revision: 1.1.1.1 $
-% $Date: 2013/09/13 18:51:18 $
+% $Revision: 1.2 $
+% $Date: 2013/12/04 14:27:49 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -117,7 +117,7 @@ not_nans = find(~isnan(timeSeries(:,1)));
 [Y,I] = sort(timeSeries(not_nans,1));
 out_of_order = find(diff(I) < 0);
 if ~isempty(out_of_order)
-    timeSeries(not_nan(I+1),1) = NaN;
+    timeSeries(not_nans(I(out_of_order)),1) = NaN;
     not_nans = find(~isnan(timeSeries(:,1)));
 end
 % Find consective non-nan timestamp duplicate rows
