@@ -33,8 +33,8 @@ classdef Dbd < handle
     % ============================================================================
     % $RCSfile: Dbd.m,v $
     % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@Dbd/Dbd.m,v $
-    % $Revision: 1.5 $
-    % $Date: 2013/10/03 20:33:03 $
+    % $Revision: 1.6 $
+    % $Date: 2013/12/06 21:07:27 $
     % $Author: kerfoot $
     % ============================================================================
     %
@@ -527,10 +527,25 @@ classdef Dbd < handle
             % Re-index the yo profiles
             obj.indexProfiles();
           
-            % Convert m_gps_lat and/or m_gps_lon (if they exist) from the 
-            % default units (decimial minuts) to decimal degrees and add
-            % them as new sensors drv_latitude and/or drv_longitude
-            obj.interpGps();
+% % % % %             % Add the derived GPS sensors with nan-filled arrays
+% % % % %             dbd.dbdData.drv_latitude = nan(obj.rows,1);
+% % % % %             dbd.dbdData.drv_longitude = nan(obj.rows,1);
+% % % % %             obj.sensorUnits.drv_latitude = 'degrees';
+% % % % %             obj.sensorUnits.drv_longitude = 'degrees';
+% % % % %                 
+% % % % %             % Convert m_gps_lat and/or m_gps_lon (if they exist) from the 
+% % % % %             % default units (decimial minuts) to decimal degrees and add
+% % % % %             % them as new sensors drv_latitude and/or drv_longitude
+% % % % %             GPS_SENSORS = {'m_gps_lat',...
+% % % % %                 'm_gps_lon',...
+% % % % %                 }';            
+            % GPS fixes only interpolated if they bound a set of profiles
+            % and the sensors (m_gps_lat, m_gps_lon) are included in the
+            % instance.  If GPS_SENSORS are not found, add drv_latitude and
+            % drv_longitude sensors, initialized to an array of NaNs.
+% % % % %             if isequal(length(intersect(GPS_SENSORS, obj.sensors)),2)
+                obj.interpGps(obj.fillGps);
+% % % % %             end
             
         end
     end
@@ -803,12 +818,16 @@ classdef Dbd < handle
                 error('Pbd:InvalidMethod',...
                     errorMsg);
             end
-            % Set the attribute
-            obj.fillGps = value;
             
             % Interpolate the GPS
-            obj.interpGps();
+            success = obj.interpGps(value);
             
+            if success
+                % Set the attribute
+                obj.fillGps = value;
+            else
+                obj.fillGps = 'none';
+            end
         end
     end
     
@@ -964,7 +983,40 @@ classdef Dbd < handle
         % Interpolate the GPS fixes (m_gps_lon/m_gps_lat) using the interp1
         % method contained in obj.fillGps, provided the Dbd instance
         % contains profiles bounded by GPS fixes.
-        function interpGps(obj)
+        function success = interpGps(obj, method)
+            
+            success = false;
+            
+            % Force to lower case
+            value = lower(method);
+            
+            errorMsg = ['Value must be a string specifying a valid '...
+                'interp1.m method.'];
+            interpMethods = {'none',...
+                'nearest',...
+                'linear',...
+                'spline',...
+                'pchip',...
+                'cubic',...
+                'v5cubic',...
+                }';
+            if isempty(value)
+                error('Dbd:interpGps:emptyArgument',...
+                    errorMsg);
+            elseif ~ischar(value)
+                error('Dbd:interpGps:invalidArgument',...
+                    errorMsg);
+            elseif ~ismember(value, interpMethods)
+                error('Dbd:interpGps:InvalidMethod',...
+                    errorMsg);
+            end
+            
+            % Initialize drv_latitude and drv_longitude with nan arrays
+            nan_array = nan(obj.rows,1);
+            obj.addSensor('drv_latitude', nan_array, 'degrees');
+            obj.addSensor('drv_longitude', nan_array, 'degrees');
+
+% % % % %             obj.hasBoundingGps = false;
             
             GPS_SENSORS = {'m_gps_lat',...
                 'm_gps_lon',...
@@ -974,18 +1026,17 @@ classdef Dbd < handle
             % and the sensors (m_gps_lat, m_gps_lon) are included in the
             % instance.  If GPS_SENSORS are not found, add drv_latitude and
             % drv_longitude sensors, initialized to an array of NaNs.
-            if ~isequal(length(intersect(GPS_SENSORS, obj.sensors)),2)
-                obj.hasBoundingGps = false;
-                obj.fillGps = 'none';
+            if ~isequal(length(intersect(GPS_SENSORS, obj.sensors)),2)                
+                warning('Dbd:fillGps:missingSensor',...
+                    'Masterdata sensors m_gps_lat & m_gps_lon required for interpolation.\n');
                 
-                % Add the sensor data
-                dbd.dbdData.drv_latitude = nan(obj.rows,1);
-                dbd.dbdData.drv_longitude = nan(obj.rows,1);
-                
-                % Add the sensor units
-                obj.sensorUnits.drv_latitude = 'degrees';
-                obj.sensorUnits.drv_longitude = 'degrees';
-                
+                return;
+            end
+            
+            success = true;
+            
+            % Return if interpolation method is 'none'
+            if strcmp(value, 'none')
                 return;
             end
             
@@ -1011,59 +1062,35 @@ classdef Dbd < handle
             gps(:,[4 5]) = dm2dd(gps(:,[4 5]));
             
             % Create or replace sensors drv_latitude/drv_longitude with
-            % converted m_gps_lat and/or m_gps_lon if they exist and if 
-            % obj.fillGps == 'none'
-            if strcmp(obj.fillGps, 'none')
-                % Convert m_gps_lat and/or m_gps_lon (if they exist) from the 
-                % default units (decimial minuts) to decimal degrees and
-                % replace the current values of drv_latitude and/or 
-                % drv_longitude.
-                % Set to NaN any bad gps fixes (default value from masterdata 
-                % is 69696969):
-                % abs(lats) > 90
-                % abs(lons) > 180
-                obj.dbdData.drv_latitude = gps(:,4);
-                obj.dbdData.drv_longitude = gps(:,5);
-                
-            else
-                % Interpolate the lats and lons using the specified method
-                try
-                    i_lat = interpTimeSeries(gps(:,[3 4]),...
-                        'method',...
-                        obj.fillGps);
-                catch ME
-                    fprintf(2,...
-                        'Dbd:fillGps: Interpolation error (%s:%s).\n',...
-                        ME.identifier,...
-                        ME.message);
-                    i_lat = gps(:,4);
-                end
-                try
-                    i_lon = interpTimeSeries(gps(:,[3 5]),...
-                        'method',...
-                        obj.fillGps);
-                catch ME
-                    fprintf(2,...
-                        'Dbd:fillGps:m_gps_lon: Interpolation error (%s:%s).\n',...
-                        ME.identifier,...
-                        ME.message);
-                    i_lon = gps(:,5);
-                end
-
-                % Fix the interpolated latitudes to 5 decimal places and add them
-                % to the Dbd instance
-                obj.dbdData.drv_latitude = round(i_lat*100000)/100000;                
-
-                % Fix the interpolated longitudes to 5 decimal places and add them
-                % to the Dbd instance
-                obj.dbdData.drv_longitude = round(i_lon*100000)/100000;
-                
+            % converted m_gps_lat and/or m_gps_lon if they exist
+            % Interpolate the lats and lons using the specified method
+            try
+                i_lat = interpTimeSeries(gps(:,[3 4]),...
+                    'method',...
+                    value);
+            catch ME
+                fprintf(2,...
+                    'Dbd:fillGps: Interpolation error (%s:%s).\n',...
+                    ME.identifier,...
+                    ME.message);
+                i_lat = gps(:,4);
             end
-            
-            % Add the sensor units
-            obj.sensorUnits.drv_latitude = 'degrees';
-            obj.sensorUnits.drv_longitude = 'degrees';
-            
+            try
+                i_lon = interpTimeSeries(gps(:,[3 5]),...
+                    'method',...
+                    value);
+            catch ME
+                fprintf(2,...
+                    'Dbd:fillGps:m_gps_lon: Interpolation error (%s:%s).\n',...
+                    ME.identifier,...
+                    ME.message);
+                i_lon = gps(:,5);
+            end
+
+            % Replace the sensor data with the interpolated values
+            obj.addSensor('drv_latitude', i_lat);                
+            obj.addSensor('drv_longitude', i_lon);
+                
         end
         
     end
