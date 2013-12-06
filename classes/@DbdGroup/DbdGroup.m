@@ -52,8 +52,8 @@ classdef DbdGroup < handle
     % ============================================================================
     % $RCSfile: DbdGroup.m,v $
     % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@DbdGroup/DbdGroup.m,v $
-    % $Revision: 1.3 $
-    % $Date: 2013/09/18 14:06:42 $
+    % $Revision: 1.4 $
+    % $Date: 2013/12/06 21:09:04 $
     % $Author: kerfoot $
     % ============================================================================
     %
@@ -125,17 +125,17 @@ classdef DbdGroup < handle
             % Matlab requires us to fill in empty object arrays from bottom to
             % top.  We'll sort them later
             for f = 1:numDbds;
-                if isempty(varargin)
-                    try
-                        dbd = Dbd(sourceFiles{f});
-                    catch ME
-                        fprintf(2,...
-                            '%s:%s\n',...
-                            ME.identifier,...
-                            ME.message);
-                        continue;
-                    end
-                else
+% % % % %                 if isempty(varargin)
+% % % % %                     try
+% % % % %                         dbd = Dbd(sourceFiles{f});
+% % % % %                     catch ME
+% % % % %                         fprintf(2,...
+% % % % %                             '%s:%s\n',...
+% % % % %                             ME.identifier,...
+% % % % %                             ME.message);
+% % % % %                         continue;
+% % % % %                     end
+% % % % %                 else
                     try
                         dbd = Dbd(sourceFiles{f}, varargin{:});
                     catch ME
@@ -144,7 +144,7 @@ classdef DbdGroup < handle
                             ME.identifier,...
                             ME.message);
                     end
-                end
+% % % % %                 end
                 
                 % Add the Dbd instance
                 obj.addDbd(dbd);
