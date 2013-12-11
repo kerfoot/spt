@@ -33,8 +33,8 @@ classdef Dbd < handle
     % ============================================================================
     % $RCSfile: Dbd.m,v $
     % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@Dbd/Dbd.m,v $
-    % $Revision: 1.6 $
-    % $Date: 2013/12/06 21:07:27 $
+    % $Revision: 1.7 $
+    % $Date: 2013/12/11 20:16:12 $
     % $Author: kerfoot $
     % ============================================================================
     %
@@ -833,7 +833,7 @@ classdef Dbd < handle
     
     % Private methods
     methods (Access = private)
-        
+            
         function indexProfiles(obj)
             
             % When called from the constructor, it's possible that one or both
@@ -881,7 +881,7 @@ classdef Dbd < handle
             [v,nR] = findYoExtrema(tz);
             if isempty(v)
                 obj.profileInds = [];
-                obj.numProfiles = 0;
+%                 obj.numProfiles = 0;
                 obj.dbdData.drv_proInds = pNums;
                 obj.dbdData.drv_proDir = pDirs;
                 
