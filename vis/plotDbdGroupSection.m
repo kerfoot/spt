@@ -25,8 +25,8 @@ function fname_template = plotDbdGroupSection(obj, sensor, varargin)
 % ============================================================================
 % $RCSfile: plotDbdGroupSection.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/vis/plotDbdGroupSection.m,v $
-% $Revision: 1.5 $
-% $Date: 2013/12/11 20:17:45 $
+% $Revision: 1.6 $
+% $Date: 2014/01/13 15:56:40 $
 % $Author: kerfoot $
 % $Name:  $
 % ============================================================================
@@ -422,7 +422,7 @@ if isnan(t0)
 	t0 = min(obj.startDatenums);
 end
 if isnan(t1)
-	t1 = max(obj.startDatenums);
+	t1 = max(obj.endDatenums);
 end
 
 % Format axes
