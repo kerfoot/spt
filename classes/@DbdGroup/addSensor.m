@@ -19,8 +19,8 @@ function addSensor(obj, sensor_name, sensor_data, sensor_units)
 % ============================================================================
 % $RCSfile: addSensor.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@DbdGroup/addSensor.m,v $
-% $Revision: 1.2 $
-% $Date: 2013/10/03 20:33:49 $
+% $Revision: 1.3 $
+% $Date: 2014/01/13 15:55:48 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -48,8 +48,8 @@ end
 
 % If sensor_data is empty, all we need to do is update the sensor_units
 if isempty(sensor_data)
-    if ~isfield(obj.dbdData, sensor_name)
-        error('Dbd:addSensor:invalidSensor',...
+    if ~ismember(sensor_name, obj.sensors)
+        error('DbdGroup:addSensor:invalidSensor',...
             '%s is not a sensor in the Dbd instance.',...
             sensor_name);
     else
