@@ -17,8 +17,8 @@ function [dMean, uMean, dStd, uStd, allMean, allStd] = averageProfiles(obj, sens
 % ============================================================================
 % $RCSfile: averageProfiles.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@Dbd/averageProfiles.m,v $
-% $Revision: 1.1 $
-% $Date: 2013/09/20 20:40:47 $
+% $Revision: 1.2 $
+% $Date: 2014/01/13 15:53:56 $
 % $Author: kerfoot $
 % ============================================================================
 % 
@@ -42,6 +42,7 @@ end
 
 DEPTH_BIN = 1;
 PLOT = false;
+NUM_DEVS = 1;
 % Process options
 for x = 1:2:length(varargin)
     name = varargin{x};
@@ -60,6 +61,13 @@ for x = 1:2:length(varargin)
                     'Value for option must be a logical value');
             end
             PLOT = value;
+        case 'numdevs'
+            if ~isequal(numel(value),1) || ~isnumeric(value) || value < 0
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a positive integer',...
+                    name);
+            end
+            NUM_DEVS = value;
         otherwise
             error(sprintf('%s:invalidOption', app),...
                 'Invalid option specified: %s',...
@@ -165,7 +173,7 @@ if PLOT
     
     % Calculate and plot the 1-standard deviation polygon for downcasts
     y = [Y; flipud(Y)];
-    x = [dMean(:,2) + dStd(:,2); flipud(dMean(:,2) - dStd(:,2))];
+    x = [dMean(:,2) + dStd(:,2)*NUM_DEVS; flipud(dMean(:,2) - dStd(:,2)*NUM_DEVS)];
     y(isnan(x)) = [];
     x(isnan(x)) = [];
     [x,y] = poly2cw(x, y);
@@ -179,7 +187,7 @@ if PLOT
     
     % Calculate and plot the 1-standard deviation polygon for upcasts
     y = [Y; flipud(Y)];
-    x = [uMean(:,2) + uStd(:,2); flipud(uMean(:,2) - uStd(:,2))];
+    x = [uMean(:,2) + uStd(:,2)*NUM_DEVS; flipud(uMean(:,2) - uStd(:,2)*NUM_DEVS)];
     y(isnan(x)) = [];
     x(isnan(x)) = [];
     [x,y] = poly2cw(x, y);
@@ -216,7 +224,7 @@ if PLOT
     
     % Calculate and plot the 1-standard deviation polygon for upcasts
     y = [Y; flipud(Y)];
-    x = [allMean(:,2) + allStd(:,2); flipud(allMean(:,2) - allStd(:,2))];
+    x = [allMean(:,2) + allStd(:,2)*NUM_DEVS; flipud(allMean(:,2) - allStd(:,2)*NUM_DEVS)];
     y(isnan(x)) = [];
     x(isnan(x)) = [];
     [x,y] = poly2cw(x, y);
