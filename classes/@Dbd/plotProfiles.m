@@ -17,8 +17,8 @@ function h = plotProfiles(obj, sensorName)
 % ============================================================================
 % $RCSfile: plotProfiles.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@Dbd/plotProfiles.m,v $
-% $Revision: 1.2 $
-% $Date: 2013/09/20 20:39:39 $
+% $Revision: 1.3 $
+% $Date: 2014/01/13 15:54:44 $
 % $Author: kerfoot $
 % ============================================================================
 % 
@@ -79,6 +79,12 @@ ph = nan(length(pStruct),1);
 cmap = jet(length(pStruct));
 for x = 1:length(pStruct)
     
+%     x
+%     
+%     if isequal(x,22)
+%         keyboard;
+%     end
+    
     % Set default profile line properties
     profileLineProps = defaultProfileLineProps;
     
@@ -115,8 +121,8 @@ for x = 1:length(pStruct)
     % Update profile line properties
     profileLineProps.UserData = {sprintf('Profile %d (%s)', x, pType),...
         [num2str(length(goodRows), '%d') ' Records' ],...
-        ['t0: ' datestr(pro(1,1)) ' UTC'],...
-        ['t1: ' datestr(pro(end,1)) ' UTC'],...
+        ['t0: ' datestr(pStruct(x).meta.startDatenum) ' UTC'],...
+        ['t1: ' datestr(pStruct(x).meta.endDatenum) ' UTC'],...
         ['z0: ' num2str(pro(1,2), '%0.2f') ' m'],...
         ['z1: ' num2str(pro(end,2), '%0.2f') ' m']}';
         
