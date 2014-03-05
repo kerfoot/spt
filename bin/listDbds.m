@@ -25,8 +25,8 @@ function dbd_files = listDbds(varargin)
 %============================================================================
 % $RCSfile: listDbds.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/bin/listDbds.m,v $
-% $Revision: 1.3 $
-% $Date: 2013/10/04 13:00:58 $
+% $Revision: 1.4 $
+% $Date: 2014/03/05 13:38:36 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -100,7 +100,7 @@ file_list = dir(fullfile(DBD_DIR, ['*' DBD_GLOB]));
 
 % Match entries with the following pattern: '_\d{4}_\d{1,3}_\d{1,3}_\d{1,3}_'
 f = {file_list.name}';
-match = regexp(f, '_\d{4}_\d{1,3}_\d{1,3}_\d{1,3}_');
+match = regexp(f, '_\d{4}_\d{1,3}_\d{1,3}_\d{1,3}[_|\.]');
 % Eliminate entries that don't match
 file_list(cellfun(@isempty, match)) = [];
 
