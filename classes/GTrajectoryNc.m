@@ -5,12 +5,15 @@ classdef GTrajectoryNc < handle
         CoordinateVariables = {};
     end
         
+    properties (GetAccess = public, SetAccess = immutable)
+        schemaNcTemplate = 'IOOS_trajectory_template.nc';
+    end
+    
     properties(Access = private)
         templateSchema = [];
         exportSchema = [];
         varData = [];
-        dimensionVars = {};
-        schemaNcTemplate = 'glider_trajectory_uv_template_v.0.0.nc';
+        dimensionVars = {};   
         className = mfilename;
     end
     
@@ -27,13 +30,14 @@ classdef GTrajectoryNc < handle
             if isequal(nargin,0)
                 % Default NetCDF template file
                 NC_TEMPLATE = obj.schemaNcTemplate;
-            else
+            elseif isequal(mod(length(varargin),2),1)
                 % User-specified NetCDF file
                 if isempty(varargin{1}) || ~ischar(varargin{1})
                     error(sprintf('%s:invalidArg', obj.className),...
                         'Value for template must be a non-empty string specifying the location of a valid .nc template file.');
                 end
                 NC_TEMPLATE = varargin{1};
+                varargin(1) = [];
             end
             
             % Make sure the file exists
@@ -43,6 +47,32 @@ classdef GTrajectoryNc < handle
                     NC_TEMPLATE);
             end
 
+            % Any additiona varargin are name, value options
+            DEFLATE_LEVEL = NaN;
+            for x = 1:2:length(varargin)
+                name = varargin{x};
+                value = varargin{x+1};
+                switch lower(name)
+                    case 'deflatelevel'
+                        if ~isequal(numel(value),1) || ~isnumeric(value)
+                            error(sprintf('%s:invalidOptionValue', obj.className),...
+                                'Value for option %s must be an integer (0 <= x <= 9)',...
+                                name);
+                        elseif value < 0 || value > 9
+                            error(sprintf('%s:invalidOptionValue', obj.className),...
+                                'Integer for option %s must >= 0 and <= 9',...
+                                name);
+                        end
+                        DEFLATE_LEVEL = floor(value);
+                    otherwise
+                        error(sprintf('%s:invalidOption', obj.className),...
+                            'Invalid option specified: %s',...
+                            name);
+                end
+            end
+                            
+            obj.schemaNcTemplate = which(NC_TEMPLATE);
+                
             % Try to import the schema from the template file
             try
                 % Non-mutable schema read directly from the NetCDF template
@@ -60,6 +90,19 @@ classdef GTrajectoryNc < handle
                 error(ME);
             end
 
+            % Set the deflate level, if specified
+            if ~isnan(DEFLATE_LEVEL)
+                for v = 1:length(obj.exportSchema.Variables)
+                    try
+                        obj.exportSchema.Variables(v).DeflateLevel =...
+                            DEFLATE_LEVEL;
+                    catch ME
+                        warning(ME.identifier, ME.message);
+                        break;
+                    end
+                end
+            end
+            
             % Store the names of the dimension variables
             obj.dimensionVars = {obj.exportSchema.Dimensions.Name}';
             
@@ -321,8 +364,7 @@ classdef GTrajectoryNc < handle
                 if any(isequal(var_dimensions,0))
                     error(sprintf('%s:emptyDimension', obj.className),...
                         '%s: One or more coordinates for this variable are empty',...
-                        var_name,...
-                        s.Dimensions(v_index).Name);
+                        var_name);
                 end
 
             end
@@ -445,7 +487,7 @@ classdef GTrajectoryNc < handle
         function success = toNc(obj, nc_filename)
             
             % Argument validation
-            if ~isequal(nargin,2)
+            if nargin < 2
                 error(sprintf('%s:nargin', obj.className),...
                     'No output filename specified');
             elseif isempty(nc_filename) || ~ischar(nc_filename)

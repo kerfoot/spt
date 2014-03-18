@@ -1,4 +1,64 @@
 function [nc_file, sensor_data] = Dbd2TrajectoryNc(dbd, varargin)
+%
+% [nc_file, sensor_data] = Dbd2TrajectoryNc(dbd, varargin)
+%
+% Write a Trajectory NetCDF file containing the Dbd instance data.  The
+% file conforms to the IOOS National Glider Network conventions:
+%
+% https://github.com/IOOSProfilingGliders/Real-Time-File-Format
+%
+% The NetCDF file is written using the toNc method of the GTrajectoryNc
+% class, which interally uses a NetCDF template file.  The location of the
+% template file is contained in the schemaNcTemplate property of the
+% GTrajectory instance.
+%
+% The output file (nc_file) is written to the current working directory and
+% named using the following convention:
+%
+%   glider-YYYYmmddTHHMMSS_rt0.nc
+%
+% All sensor data is written as contained in the Dbd instance.  This means
+% you must be aware of the Dbd.fillTimes, Dbd.fillDepths and Dbd.fillGps
+% properties.  The 'time' coordinate variable is checked for missing values
+% (NaN) and all missing value record indices are removed from the data 
+% variables.
+%
+% NetCDF variable data is mapped to native Slocum glider sensors in
+% getTrajectorySensorMappings.m, which is called by 
+% selectDbdTrajectoryData.m.  Currently, you must add sensors to
+% getTrajectorySensorMappings.m directly to change the default sensor
+% mappings.
+%
+% Options must be specified as name, value pairs:
+%
+%   'outputdir', [STRING]
+%       Write NetCDF file to an alternate location.  Default is the current
+%       working directory.
+%
+%   'interpsensors', [CELL_ARRAY]
+%       Interpolate the sensors contained in the cell array prior to 
+%       writing to the NetCDF file.  Default is for no interpolation.
+%
+%   'interpallsensors', [LOGICAL]
+%       Interpolate all sensors prior to writing the NetCDF file.
+%       Overrrides 'interpsensors' option.  Default is false.
+%
+%   'clobber', [LOGICAL]
+%       Overwrite the existing file, if it exists.  Default is false.
+%
+%   'wmoid', [STRING]
+%       WMO ID assigned to this deployment.  If specified, the 'wmo_id'
+%       attribute of the platform variable is set to this value.
+%
+% See also GTrajectoryNc selectDbdTrajectoryData getTrajectorySensorMappings
+% ============================================================================
+% $RCSfile: Dbd2TrajectoryNc.m,v $
+% $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/export/nc/IOOS/trajectory/Dbd2TrajectoryNc.m,v $
+% $Revision: 1.3 $
+% $Date: 2014/03/18 15:21:24 $
+% $Author: kerfoot $
+% ============================================================================
+%
 
 % Absolute path to the created NetCDF trajectory file
 nc_file = '';
@@ -23,6 +83,7 @@ INTERP_SENSORS = {};
 INTERP_ALL_SENSORS = false;
 CLOBBER = true;
 WMO_ID = '';
+GLOBAL_ATTRIBUTES = {};
 % Process option
 for x = 1:2:length(varargin)
     name = varargin{x};
@@ -64,6 +125,13 @@ for x = 1:2:length(varargin)
                 continue;               
             end
             WMO_ID = value;
+        case 'globalattributes'
+            if ~isstruct(value) || ~isequal(length(value),1)
+                error(sprintf('%s:invalidOptionValue', app),...
+                    'Value for option %s must be a structured array mapping file attributes to values',...
+                    name);
+            end
+            GLOBAL_ATTRIBUTES = value;
         otherwise
             error(sprintf('%s:invalidOption', app),...
                 'Invalid option specified: %s',...
@@ -127,6 +195,9 @@ if isempty(sensor_data(T_INDEX).data)
         '%s: Segment contains to time values\n',...
         dbd.segment);
 end
+
+% Store the length of the time coordinate array
+array_length = length(sensor_data(T_INDEX).data);
 
 % SPECIAL CASE: Use the pressure values as a proxy for the depth variable data
 % if the depth array is empty
@@ -253,10 +324,16 @@ for x = 1:length(r)
     
     % Name of the variable corresponding to the qc variable
     data_var = sensor_vars{x}(1:end-3);
+    
     % Skip if the data variable is missing
     [TF,VAR_INDEX] = ismember(data_var, nc_vars);
     if ~TF
         continue;
+    end
+    
+    % Initialize the sensor data array if it's empty
+    if (isempty(sensor_data(VAR_INDEX).data))
+        sensor_data(VAR_INDEX).data = nan(array_length,1);
     end
     
     % Find the index of the _qc variable
@@ -439,7 +516,7 @@ end
 nc.setGlobalAttribute('comment',...
     'Data provided by the Mid-Atlantic Regional Association Coastal Ocean Observing System');
 
-nc_ts = datestr(now, 'yyyy-mm-dd HH:MM UTC');
+nc_ts = datestr(now, 'yyyy-mm-ddTHH:MM:SSZ');
 nc.setGlobalAttribute('source_file', dbd.sourceFile);
 nc.setGlobalAttribute('date_created', nc_ts);
 nc.setGlobalAttribute('date_issued', nc_ts);
@@ -452,16 +529,32 @@ nc.setGlobalAttribute('geospatial_lat_max', max(gps_data(:,3)));
 nc.setGlobalAttribute('geospatial_lat_min', min(gps_data(:,3)));
 nc.setGlobalAttribute('geospatial_lon_max', max(gps_data(:,4)));
 nc.setGlobalAttribute('geospatial_lon_min', min(gps_data(:,4)));
-nc.setGlobalAttribute('geospatial_vertical_max', max(gps_data(:,2))*10);
-nc.setGlobalAttribute('geospatial_vertical_min', min(gps_data(:,2))*10);
+nc.setGlobalAttribute('geospatial_vertical_max', max(gps_data(:,2)));
+nc.setGlobalAttribute('geospatial_vertical_min', min(gps_data(:,2)));
 nc.setGlobalAttribute('history', sprintf('Created %s', nc_ts));
 nc.setGlobalAttribute('id',...
     sprintf('%s-%s', dbd.glider, datestr(epoch2datenum(min(gps_data(:,1))), 'yyyymmddTHHMMSS')));
 nc.setGlobalAttribute('time_coverage_start',...
-    datestr(epoch2datenum(min(gps_data(:,1))), 'yyyy-mm-dd HH:MM UTC'));
+    datestr(epoch2datenum(min(gps_data(:,1))), 'yyyy-mm-ddTHH:MM:SSZ'));
 nc.setGlobalAttribute('time_coverage_end',...
-    datestr(epoch2datenum(max(gps_data(:,1))), 'yyyy-mm-dd HH:MM UTC'));
+    datestr(epoch2datenum(max(gps_data(:,1))), 'yyyy-mm-ddTHH:MM:SSZ'));
 
+% Update any global attributes contained in the GLOBAL_ATTRIBUTES
+% structured array
+if ~isempty(GLOBAL_ATTRIBUTES)
+    if isstruct(GLOBAL_ATTRIBUTES) && isequal(length(GLOBAL_ATTRIBUTES),1)
+        gAtts = fieldnames(GLOBAL_ATTRIBUTES);
+        for g = 1:length(gAtts)
+            fprintf(1,...
+                'Setting file attribute: %s\n',...
+                gAtts{g});
+            nc.setGlobalAttribute(gAtts{g}, GLOBAL_ATTRIBUTES.(gAtts{g}));
+        end
+    else
+        warning(sprintf('%s:invalidDataType', app),...
+            'User-specified global attributes argument must be a structured array mapping attribute name to the attribute value\n');
+    end
+end
 % Fill in the depth-average current variables
 % Take the mean of the 'time' variable and use it as the 'time_uv' value
 nc.addVariableData('time_uv', mean(nc.getVariableData('time')));
