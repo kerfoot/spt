@@ -1,4 +1,4 @@
-function [dMean, uMean, dStd, uStd, allMean, allStd] = averageProfiles(obj, sensor, varargin)
+function [dMean, uMean, dStd, uStd, allMean, allStd, numProfiles] = averageProfiles(obj, sensor, varargin)
 %
 % [dMean, uMean, dStd, uStd, allMean, allStd] = averageProfiles(obj, sensor, varargin)
 %
@@ -17,8 +17,8 @@ function [dMean, uMean, dStd, uStd, allMean, allStd] = averageProfiles(obj, sens
 % ============================================================================
 % $RCSfile: averageProfiles.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@Dbd/averageProfiles.m,v $
-% $Revision: 1.2 $
-% $Date: 2014/01/13 15:53:56 $
+% $Revision: 1.3 $
+% $Date: 2014/03/18 12:49:36 $
 % $Author: kerfoot $
 % ============================================================================
 % 
@@ -82,6 +82,7 @@ dStd = [];
 uStd = [];
 allMean = [];
 allStd = [];
+numProfiles = [];
 
 % Grid the profile data
 [X,Y,DATAI] = obj.toGrid2d(sensor, 'depthbin', DEPTH_BIN);
@@ -113,20 +114,24 @@ dStd = dMean;
 uStd = dMean;
 allMean = dMean;
 allStd = dMean;
+numProfiles = nan(length(Y),3);
 
 for x = 1:length(Y)
     
     c = find(~isnan(DOWNS(x,:)));
     dMean(x,2) = mean(DOWNS(x,c));
     dStd(x,2) = std(DOWNS(x,c));
+    numProfiles(x,1) = length(c);
     
     c = find(~isnan(UPS(x,:)));
     uMean(x,2) = mean(UPS(x,c));
     uStd(x,2) = std(UPS(x,c));
+    numProfiles(x,2) = length(c);
     
     c = find(~isnan(DATAI(x,:)));
     allMean(x,2) = mean(DATAI(x,c));
     allStd(x,2) = std(DATAI(x,c));
+    numProfiles(x,3) = length(c);
     
 end
     
