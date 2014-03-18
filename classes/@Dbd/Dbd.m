@@ -33,8 +33,8 @@ classdef Dbd < handle
     % ============================================================================
     % $RCSfile: Dbd.m,v $
     % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@Dbd/Dbd.m,v $
-    % $Revision: 1.7 $
-    % $Date: 2013/12/11 20:16:12 $
+    % $Revision: 1.8 $
+    % $Date: 2014/03/18 15:24:00 $
     % $Author: kerfoot $
     % ============================================================================
     %
@@ -1035,8 +1035,13 @@ classdef Dbd < handle
             
             success = true;
             
-            % Return if interpolation method is 'none'
+            % Convert GPS_SENSORS values to decimal degrees, replace the
+            % drv_latitude and drv_longitude nan arrays and return if 
+            % interpolation method is 'none'
             if strcmp(value, 'none')
+                gps = obj.toArray('sensors', GPS_SENSORS);
+                obj.addSensor('drv_latitude', dm2dd(gps(:,3)));
+                obj.addSensor('drv_longitude', dm2dd(gps(:,4)));
                 return;
             end
             
