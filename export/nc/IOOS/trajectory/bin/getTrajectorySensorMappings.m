@@ -1,13 +1,47 @@
-function sensor_map = getTrajectorySensorMappings(varargin)
+function [sensor_map, NC_TEMPLATE] = getTrajectorySensorMappings(NC_TEMPLATE)
+%
+% sensor_map = getTrajectorySensorMappings([NC_TEMPLATE])
+%
+% Returns a structured array mapping the IOOS Trajectory NetCDF variable
+% names to native slocum glider sensor names.  If not specified, the 
+% default NetCDF template is taken from the GTrajectory.schemaNcTemplate 
+% property.  The standard NetCDF template can be found here:
+%
+% https://github.com/IOOSProfilingGliders/Real-Time-File-Format/tree/master/template
+%
+% NetCDF variable data is mapped to native Slocum glider sensors in
+% getTrajectorySensorMappings.m, which is called by 
+% selectDbdTrajectoryData.m.  Currently, you must add sensors to
+% getTrajectorySensorMappings.m directly to change the default sensor
+% mappings.
+%
+% See also selectDbdTrajectoryData GTrajectoryNc 
+% ============================================================================
+% $RCSfile: getTrajectorySensorMappings.m,v $
+% $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/export/nc/IOOS/trajectory/bin/getTrajectorySensorMappings.m,v $
+% $Revision: 1.2 $
+% $Date: 2014/03/19 20:08:10 $
+% $Author: kerfoot $
+% ============================================================================
+%
 
+app = mfilename;
 sensor_map = [];
 
-NC_TEMPLATE = 'glider_trajectory_uv_template_v.0.0.nc';
-if ~exist(NC_TEMPLATE, 'file')
-    error(sprintf('%s:fileNotFound', mfilename),...
-        'Cannot find the NetCDF template file: %s',...
+if isequal(nargin,0)
+    NC_TEMPLATE = GTrajectoryNc().schemaNcTemplate;
+    fprintf(1,...
+        '%s: Using default NetCDF template: %s\n',...
+        app,...
         NC_TEMPLATE);
 end
+
+if ~exist(NC_TEMPLATE, 'file')
+    fprintf(2, '%s: Cannot locate the NetCDF template file: %s',...
+        app,...
+        NC_TEMPLATE);
+end
+
 % Read in the schema and use it to initialize the sensor mapping data
 % structure
 try

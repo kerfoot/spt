@@ -54,8 +54,8 @@ function [nc_file, sensor_data] = Dbd2TrajectoryNc(dbd, varargin)
 % ============================================================================
 % $RCSfile: Dbd2TrajectoryNc.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/export/nc/IOOS/trajectory/Dbd2TrajectoryNc.m,v $
-% $Revision: 1.3 $
-% $Date: 2014/03/18 15:21:24 $
+% $Revision: 1.4 $
+% $Date: 2014/03/19 20:07:01 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -182,7 +182,15 @@ if ~isempty(regexp(dbd.timestampSensor, '^drv_.*_datenum$', 'once'))
 end
 
 % Select the variable data 
-sensor_data = selectDbdTrajectoryData(dbd);
+[sensor_data, netcdf_template] = selectDbdTrajectoryData(dbd);
+if isempty(sensor_data)
+    nc_file = '';
+    return;
+end
+
+fprintf(1,...
+    'Dbd instance sensor data chosen: %s\n',...
+    netcdf_template);
 
 % List of all NetCDF variable names
 sensor_vars = {sensor_data.ncVarName}';
