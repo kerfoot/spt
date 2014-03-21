@@ -3,7 +3,19 @@ classdef Dbd < handle
     % obj = Dbd(dbd_file, varargin)
     %
     % Create and new instance of the Dbd class representing the specified 
-    % Slocum glider data file.
+    % Slocum glider data file (dbd_file).  
+    %
+    % The class accepts 2 forms of ascii data files, both of which are 
+    % produced by the dbd2asc utility, provided by TWRC.  This utility
+    % creates ascii output composed of a series of metadata header lines
+    % followed by the data values and is typically referred to as dinkum
+    % binary ascii data.  This output may, optionally, be piped to the
+    % dba2_orig_matlab utility to create a pair of files for each original
+    % binary file.  The file pairs consists of a Matlab script file (.m)
+    % and an ascii data file which has the metadata header stripped out to
+    % facilitate loading in the Matlab programming environment.  If the
+    % matlab formatted data files are used the input argument, dbd_file, is
+    % the name of the .m file, not the .dat sibling file.
     %
     % By default, all sensors in the data file are stored in the instance, 
     % with the exception of sensors beginning with 'gld_dup_', as these are 
@@ -33,8 +45,8 @@ classdef Dbd < handle
     % ============================================================================
     % $RCSfile: Dbd.m,v $
     % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@Dbd/Dbd.m,v $
-    % $Revision: 1.8 $
-    % $Date: 2014/03/18 15:24:00 $
+    % $Revision: 1.9 $
+    % $Date: 2014/03/21 19:35:13 $
     % $Author: kerfoot $
     % ============================================================================
     %
@@ -303,7 +315,7 @@ classdef Dbd < handle
 
                 end
                 
-            else % Self-contained data file specified
+            else % Self-contained data file specified (ie: dbd2asc)
                 
                 % Store the size of the .dat file
                 dInfo = dir(sourceFile);
@@ -312,6 +324,10 @@ classdef Dbd < handle
                 % Set the source file name
                 obj.sourceFile = sourceFile;
 
+                % Regexp to make sure the user hasn't specified the .dat
+                % file of a .m/.dat pair.
+                dataRegexp = '^NaN|^\d|^\-';
+                
                 % Open up the file and parse the header
                 fid = fopen(sourceFile, 'r');
                 ht = fgetl(fid);
@@ -319,6 +335,13 @@ classdef Dbd < handle
                 lineNumber = 1;
                 while ~feof(fid) &&...
                         isempty(regexp(ht, '^segment_filename_0', 'tokens'))
+                    
+                    if ~isempty(regexp(ht, dataRegexp, 'once'))
+                        error('Dbd:invalidFileType',...
+                            '%s: file is not a valid dba file',...
+                            sourceFile);
+                    end
+                    
                     % Look for the segment name, 8.3 name and the glider
                     % name, all from the same line
                     tokens = regexp(ht,...
@@ -340,6 +363,14 @@ classdef Dbd < handle
                     end
                     ht = fgetl(fid);
                     lineNumber = lineNumber + 1;
+                end
+                
+                % Make sure the header was parsed properly before
+                % proceeding
+                if isempty(obj.segment)
+                    error('Dbd:invalidFile',...
+                        '%s: File header was unable to be parsed',...
+                        sourceFile);
                 end
                 
                 % Get the next line, which should be a whitespace delimited
