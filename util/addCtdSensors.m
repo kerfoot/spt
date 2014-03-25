@@ -50,8 +50,8 @@ function addCtdSensors(obj, varargin)
 % ============================================================================
 % $RCSfile: addCtdSensors.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/util/addCtdSensors.m,v $
-% $Revision: 1.3 $
-% $Date: 2013/10/07 15:55:50 $
+% $Revision: 1.4 $
+% $Date: 2014/03/25 15:31:48 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -156,6 +156,8 @@ obj.addSensor('drv_sea_water_electrical_conductivity',...
     ctd(:,3),...
     obj.sensorUnits.(C_SENSOR));
 
+fprintf(1,...
+    'Deriving drv_sea_water_salinity\n');
 % Calculate salinity
 salt = gliderCTP2Salinity(ctd(:,3), ctd(:,4), ctd(:,2));
 % Add it to the Dbd instance as drv_sea_water_salinity (CF standard name)
@@ -163,6 +165,8 @@ obj.addSensor('drv_sea_water_salinity',...
     salt,...
     'PSU');
 
+fprintf(1,...
+    'Deriving drv_sea_water_density\n');
 % Calculate density
 dens = sw_dens(salt, ctd(:,4), ctd(:,2));
 % Add it to the Dbd instance as drv_sea_water_density (CF standard name)
@@ -170,6 +174,8 @@ obj.addSensor('drv_sea_water_density',...
     dens,...
     'kg m^-^3');
 
+fprintf(1,...
+    'Deriving drv_speed_of_sound_in_seawater\n');
 % Calculate sound velocity
 svel = sw_svel(salt, ctd(:,4), ctd(:,2));
 % Add it to the Dbd instance as drv_speed_of_sound_in_seawater (CF standard
