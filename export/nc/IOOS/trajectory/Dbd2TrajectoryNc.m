@@ -54,8 +54,8 @@ function [nc_file, sensor_data] = Dbd2TrajectoryNc(dbd, varargin)
 % ============================================================================
 % $RCSfile: Dbd2TrajectoryNc.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/export/nc/IOOS/trajectory/Dbd2TrajectoryNc.m,v $
-% $Revision: 1.4 $
-% $Date: 2014/03/19 20:07:01 $
+% $Revision: 1.5 $
+% $Date: 2014/04/22 20:24:38 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -507,6 +507,20 @@ if ~isempty(atts)
     % type
     nc.setVariableAttribute('platform',...
         'type', 'slocum');
+    % comment
+    nc.setVariableAttribute('platform',...
+        'comment', sprintf('Slocum Glider %s', dbd.glider));
+end
+
+% See if we have instrument_ctd variable
+atts = nc.getVariableAttributes('instrument_ctd');
+if ~isempty(atts)
+    % Add/fill in some attributes if we have a platform variable in the
+    % NetCDF schema
+    
+    % comment
+    nc.setVariableAttribute('instrument_ctd',...
+        'comment', sprintf('Slocum Glider %s', dbd.glider));
 end
 
 % Add the WMO id if specified
