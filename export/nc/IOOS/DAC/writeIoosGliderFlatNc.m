@@ -22,8 +22,8 @@ function outFile = writeIoosGliderFlatNc(pStruct, varargin)
 % ============================================================================
 % $RCSfile: writeIoosGliderFlatNc.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/export/nc/IOOS/DAC/writeIoosGliderFlatNc.m,v $
-% $Revision: 1.1 $
-% $Date: 2014/06/03 19:25:24 $
+% $Revision: 1.2 $
+% $Date: 2014/06/03 19:49:59 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -272,7 +272,7 @@ end
 
 for v = 1:length(PROFILE_VARS)
     
-    PROFILE_VARS{v}
+    PROFILE_VARS{v};
     
     [~,I] = ismember(PROFILE_VARS{v}, NC_VARS);
     if isequal(I,0)
@@ -314,45 +314,3 @@ for v = 1:length(PROFILE_VARS)
     end
     
 end
-
-% Write the data to the file
-% for v = 1:length(NC_VARS)
-%     
-%     pVars = {pStruct.vars.ncVarName}';
-%     [~,I] = ismember(NC_VARS{v}, pVars);
-%     if isequal(I,0)
-%         if nci.Variables(v).Dimensions.Length < 1
-%             varData = repmat(nci.Variables(v).FillValue, 1, 1);
-%         else
-%             varData = repmat(nci.Variables(v).FillValue,...
-%                 nci.Variables(v).Dimensions.Length,...
-%                 1);
-%         end
-%         
-%         pStruct.vars(end+1) = struct('ncVarName', NC_VARS{v},...
-%             'data', varData);
-%         
-%         I = length(pStruct.vars);
-%     elseif isempty(pStruct.vars(I).data)
-%         continue;
-%     end
-%     
-%     % Re-define pVars in case it contains any new variables from the block
-%     % above
-%     pVars = {pStruct.vars.ncVarName}';
-%     
-%     % Convert any data for which the variable contains the string 'time'
-%     % and the data appears to be datenum.m
-%     if ~isempty(regexp(pVars{I}, 'time', 'once'))
-%         meanVal = mean(pStruct.vars(I).data(~isnan(pStruct.vars(I).data)));
-%         if meanVal < DATENUM_CUTOFF
-%             pStruct.vars(I).data = datenum2epoch(pStruct.vars(I).data);
-%         end
-%     end
-%       
-%     % Replace NaNs with _FillValues
-%     pStruct.vars(I).data(isnan(pStruct.vars(I).data)) = nci.Variables(v).FillValue;
-%     
-%     ncwrite(outFile, NC_VARS{v}, pStruct.vars(I).data);
-%     
-% end
