@@ -6,8 +6,8 @@ function sensorMap = getIoosGliderFlatNcSensorMappings(varargin)
 % ============================================================================
 % $RCSfile: getIoosGliderFlatNcSensorMappings.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/export/nc/IOOS/DAC/bin/getIoosGliderFlatNcSensorMappings.m,v $
-% $Revision: 1.1 $
-% $Date: 2014/06/03 19:26:14 $
+% $Revision: 1.2 $
+% $Date: 2014/06/06 19:20:51 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -57,7 +57,7 @@ end
 %     'trajectory',...
 %     }';
 
-% Add defaults sensor mappings
+% Add default sensor mappings
 sensorMap.time = {'timestamp',...
     'drv_sci_m_present_time_datenum',...
     'drv_m_present_time_datenum',...
