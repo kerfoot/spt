@@ -9,21 +9,21 @@ function outFile = writeIoosGliderFlatNc(pStruct, varargin)
 % Options:
 % 'clobber', [true or false]: by default, existing NetCDF files are not 
 %   overwritten.  Set to true to overwrite existing files.
-% 'attributes', STRUCT: structured array mapping global NetCDF file
+% 'schema', STRUCT: structured array mapping global NetCDF file
 %   attributes to values.  If not specified, default values are taken from 
-%   the NetCDF template file and written.
+%   the NetCDF template file.
 % 'outfile', STRING: the NetCDF filename is constructed from the .meta
 %   field.  Use this option to specify a custom filename.
 % 'outdirectory', STRING: NetCDF files are written to the current working
 %   directory.  Use this option to specify an alternate path.
 %
-% See also writeIoosGliderFlatNc getIoosGliderFlatNcSensorMappings
+% See also writeIoosGliderFlatNc getIoosGliderFlatNcSensorMappings loadNcJsonSchema
 %
 % ============================================================================
 % $RCSfile: writeIoosGliderFlatNc.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/export/nc/IOOS/DAC/writeIoosGliderFlatNc.m,v $
-% $Revision: 1.2 $
-% $Date: 2014/06/03 19:49:59 $
+% $Revision: 1.3 $
+% $Date: 2014/06/06 18:43:22 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -42,6 +42,9 @@ REQUIRED_NC_VARS = {'time',...
     'temperature',...
     'salinity',...
     'density',...
+    'time_uv',...
+    'lat_uv',...
+    'lon_uv',...
     'u',...
     'v',...
     'profile_id',...
@@ -69,7 +72,7 @@ end
 
 % Default options
 CLOBBER = false;
-GLOBAL_ATTRIBUTES = [];
+SCHEMA = [];
 OUT_DIR = pwd;
 outFile = '';
 % Process options
@@ -84,13 +87,13 @@ for x = 1:2:length(varargin)
                     name);
             end
             CLOBBER = value;
-        case 'attributes'
+        case 'schema'
             if ~isstruct(value) || ~isequal(length(struct),1)
                 error(sprintf('%s:invalidOptionValue', ap),...
                     'Value for option %s must be a structured array mapping attribute names to values',...
                     name);
             end
-            GLOBAL_ATTRIBUTES = value;
+            SCHEMA = value;
         case 'outfilename'
             if ~ischar(value) || isempty(value)
                 error(sprintf('%s:invalidOptionValue', app),...
@@ -154,7 +157,6 @@ if isempty(VARS)
     return;
 end
 
-% Create the filename
 % Create the filename, if not specified
 if isempty(outFile)
     outFile = fullfile(OUT_DIR,...
@@ -185,27 +187,64 @@ if CLOBBER && exist(outFile, 'file')
     end
 end
 
-% Add some specific global attributes
-nci.Attributes(end+1).Name = 'date_created';
-nci.Attributes(end).Value = datestr(now, 'YYYY-mm-ddTHH:MM:SSZ');
-nci.Attributes(end+1).Name = 'date_issued';
-nci.Attributes(end).Value = datestr(now, 'YYYY-mm-ddTHH:MM:SSZ');
-nci.Attributes(end+1).Name = 'history';
-nci.Attributes(end).Value = [mfilename('fullpath') '.m'];
-nci.Attributes(end+1).Name = 'title';
-nci.Attributes(end).Value = sprintf('%s-%s',...
-    pStruct.meta.glider,...
-    datestr(pStruct.meta.startDatenum, 'yyyymmddTHHMM'));
-
-% Add new or overwrite existing global attributes if specified via the
-% 'attributes' option
-if ~isempty(GLOBAL_ATTRIBUTES)
-    gFields = fieldnames(GLOBAL_ATTRIBUTES);
-    for g = 1:length(gFields)
-        nci.Attributes(end+1).Name = gFields{g};
-        nci.Attributes(end).Value = GLOBAL_ATTRIBUTES.(gFields{g});
+% If a schema structured array was specified, update the global attributes
+% with the elements in SCHEMA.Attributes
+schemaVars = {};
+if ~isempty(SCHEMA)
+    schemaVars = {SCHEMA.Variables.Name}';
+    schemaAtts = {SCHEMA.Attributes.Name}';
+    nciAtts = {nci.Attributes.Name}';
+    for a = 1:length(schemaAtts)
+        [~,I] = ismember(schemaAtts{a}, nciAtts);
+        if isequal(I,0)
+            I = length(nci.Attributes) + 1;
+        end
+        nci.Attributes(I).Name = schemaAtts{a};
+        nci.Attributes(I).Value = SCHEMA.Attributes(a).Value;
     end
 end
+    
+% Add some specific global attributes
+creationTimestamp = datestr(now, 'YYYY-mm-ddTHH:MM:SSZ');
+% Global date_created attribute
+[~,I] = ismember('date_created', {nci.Attributes.Name}');
+if isequal(I,0)
+    I = length(nci.Attributes) + 1;
+    nci.Attributes(I).Name = 'date_created';
+end
+nci.Attributes(I).Value = creationTimestamp;
+% Global date_issued attribute
+[~,I] = ismember('date_issued', {nci.Attributes.Name}');
+if isequal(I,0)
+    I = length(nci.Attributes) + 1;
+    nci.Attributes(I).Name = 'date_issued';
+end
+nci.Attributes(I).Value = creationTimestamp;
+% Global history attribute
+[~,I] = ismember('history', {nci.Attributes.Name}');
+if isequal(I,0)
+    I = length(nci.Attributes) + 1;
+    nci.Attributes(I).Name = 'history';
+end
+nci.Attributes(I).Value = [mfilename('fullpath') '.m'];
+% title and id identifier
+id = sprintf('%s-%s',...
+    pStruct.meta.glider,...
+    datestr(pStruct.meta.startDatenum, 'yyyymmddTHHMM'));
+% Global title attribute
+[~,I] = ismember('title', {nci.Attributes.Name}');
+if isequal(I,0)
+    I = length(nci.Attributes) + 1;
+    nci.Attributes(I).Name = 'title';
+end
+nci.Attributes(I).Value = id;
+% Global title attribute
+[~,I] = ismember('id', {nci.Attributes.Name}');
+if isequal(I,0)
+    I = length(nci.Attributes) + 1;
+    nci.Attributes(I).Name = 'id';
+end
+nci.Attributes(I).Value = id;
 
 % Template Dimensions
 NC_DIMS = {nci.Dimensions.Name}';
@@ -255,6 +294,32 @@ for v = 1:length(nci.Variables)
         nci.Variables(v).Size = trajStrLength;
     end
         
+    % Skip the rest of the block if no SCHEMA was specified
+    if isempty(schemaVars)
+        continue;
+    end
+    
+    % Skip the rest of this block if this variable is not defined in the SCHEMA
+    [~,I] = ismember(nci.Variables(v).Name, schemaVars);
+    if isequal(I,0)
+        continue;
+    end
+    
+    % List of SCHEMA variable attributes
+    varAtts = {SCHEMA.Variables(I).Attributes.Name}';
+    % List of nci variable attributes
+    nciAtts = {nci.Variables(v).Attributes.Name}';
+    % Loop through the SCHEMA attributes and update/add to the nci variable
+    % attributes
+    for a = 1:length(varAtts)
+        [~,I] = ismember(varAtts{a}, nciAtts);
+        if isequal(I,0)
+            I = length(nci.Variables(v).Attributes) + 1;
+        end
+        nci.Variables(v).Attributes(I).Name = varAtts{a};
+        nci.Variables(v).Attributes(I).Value = SCHEMA.Attributes(a).Value;
+    end
+    
 end
 
 % Create the file
@@ -287,7 +352,7 @@ for v = 1:length(PROFILE_VARS)
         continue;
     elseif ~isequal(length(pStruct.vars(v).data), nci.Variables(I).Size)
         fprintf(2,...
-            '%s: Data array does not match NetCDF variable definition\n',...
+            '%s: Data array does not match NetCDF variable size definition\n',...
             PROFILE_VARS{v});
         continue;
     end
