@@ -22,8 +22,8 @@ function outFile = writeIoosGliderFlatNc(pStruct, varargin)
 % ============================================================================
 % $RCSfile: writeIoosGliderFlatNc.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/export/nc/IOOS/DAC/writeIoosGliderFlatNc.m,v $
-% $Revision: 1.4 $
-% $Date: 2014/06/09 14:20:36 $
+% $Revision: 1.5 $
+% $Date: 2014/06/09 15:18:51 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -33,6 +33,7 @@ app = mfilename;
 
 REQUIRED_FIELDS = {'meta',...
     'vars',...
+    'profile_id',...
     }';
 REQUIRED_NC_VARS = {'time',...
     'trajectory',...
@@ -56,17 +57,21 @@ DATENUM_CUTOFF = datenum(2100,1,1);
 % Validate input args
 if nargin < 2
     warning(sprintf('%s:nargin', app),...
-        '2 arguments are required');
+        '2 arguments are required.\n');
     return;
 elseif ~isstruct(pStruct) ||...
         ~isequal(length(pStruct),1) ||...
         ~isequal(length(REQUIRED_FIELDS), length(intersect(REQUIRED_FIELDS,fieldnames(pStruct))))
     warning(sprintf('%s:invalidArgument', app),...
-        'pStruct must be a structured array containing appropriate fields.');
+        'pStruct must be a structured array containing appropriate fields.\n');
     return;
 elseif isempty(pStruct.meta) || isempty(pStruct.vars)
     warning(sprintf('%s:invalidArgument', app),...
-        'pStruct fields are empty.');
+        'pStruct fields are empty.\n');
+    return;
+elseif isempty(pStruct.profile_id) || isnan(pStruct.profile_id)
+    warning(sprintf('%s:invalidProfileId', app),...
+        'The pStruct does not contain a valid profile_id\n');
     return;
 end
 
