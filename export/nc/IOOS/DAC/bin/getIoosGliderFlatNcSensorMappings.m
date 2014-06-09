@@ -1,13 +1,22 @@
 function sensorMap = getIoosGliderFlatNcSensorMappings(varargin)
 %
-% sensor_map = getFlatNcSensorMappings(varargin)
+% sensorMap = getFlatNcSensorMappings(varargin)
 %
-% See also writeGliderFlatNc selectFlatNcSensorMappings
+% Returns a sturctured array mapping NetCDF variable names from the 
+% IOOS_Glider_NetCDF_Flat_v1.0.nc specification to a cell array of valid Dbd or 
+% DbdGroup native glider sensors.  The default lists of valid glider sensor 
+% names can be modified if additional sensors should be considered.
+%
+% The return value is used by mapIoosGliderFlatNcSensors to create a data
+% structure that is used to write individual NetCDF files conforming to the
+% specification using writeIoosGliderFlatNc.m.
+%
+% See also writeIoosGliderFlatNc mapIoosGliderFlatNcSensors DbdGroup Dbd
 % ============================================================================
 % $RCSfile: getIoosGliderFlatNcSensorMappings.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/export/nc/IOOS/DAC/bin/getIoosGliderFlatNcSensorMappings.m,v $
-% $Revision: 1.2 $
-% $Date: 2014/06/06 19:20:51 $
+% $Revision: 1.3 $
+% $Date: 2014/06/09 14:21:18 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -34,7 +43,6 @@ for x = 1:2:length(varargin)
                 name);
     end
 end
-
 
 % NC_VARS = {'time',...
 %     'lat',...

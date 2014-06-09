@@ -1,13 +1,25 @@
-function ncStruct = selectIoosGliderFlatNcSensors(pStruct, trajectoryTs, varargin)
+function ncStruct = mapIoosGliderFlatNcSensors(pStruct, trajectoryTs, varargin)
 %
 % ncStruct = selectGliderFlatNcSensors(pStruct, varargin)
+%
+% Returns a structured array in which each element contains an individual
+% profile from pStruct that contains the NetCDF variable name, the native glider
+% sensor and the sensor data.  The first sensor found in the list of valid
+% glider sensors is chosen.  pStruct is a structured array created using the
+% DbdGroup.toProfiles() method and trajectoryTs is a Matlab datenum value
+% specifying the start date and time of the deployment.  The value of
+% trajectoryTs is formatted to a string of the following format:
+%
+% glider-YYYYmmddTHHMM
+%
+% and is used to create the NetCDF trajectory variable.
 %
 % See also writeIoosGliderFlatNc getIoosGliderFlatNcSensorMappings Dbd DbdGroup
 % ============================================================================
 % $RCSfile: mapIoosGliderFlatNcSensors.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/export/nc/IOOS/DAC/bin/mapIoosGliderFlatNcSensors.m,v $
-% $Revision: 1.1 $
-% $Date: 2014/06/06 20:25:11 $
+% $Revision: 1.2 $
+% $Date: 2014/06/09 14:21:18 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -48,11 +60,6 @@ if isempty(sMap)
     return;
 end
 
-% Add 'time' and 'pressure' fields to mapped to dbd.timestampSensor and
-% dbd.depthSensor
-% % % % % sMap.time = {'timestamp'}';
-% % % % % sMap.pressure = {'depth'}';
-
 % Fieldnames (variables) from the sensor map
 vars = fieldnames(sMap);
 % Select the available fields from pStruct
@@ -67,9 +74,6 @@ for v = 1:length(vars)
     sensorStruct(end).data = [];
     
     if isempty(sMap.(vars{v}))
-% % % % %         warning(sprintf('%s:unknownSensorMapping', app),...
-% % % % %             'Sensor map field contains no sensor mappings: %s\n',...
-% % % % %             vars{v});
         continue;
     end
     
@@ -77,9 +81,6 @@ for v = 1:length(vars)
     % this sensor
     [C,AI] = intersect(sMap.(vars{v}), pFields);
     if isempty(C)
-% % % % %         warning(sprintf('%s:sensorsNotFound', app),...
-% % % % %             '%s: No sensors found in the Dbd instance\n',...
-% % % % %             vars{v});
        continue;
     end
     

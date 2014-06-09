@@ -3,7 +3,7 @@ function outFile = writeIoosGliderFlatNc(pStruct, varargin)
 % outFile = writeIoosGliderFlatNc(pStruct[,varargin])
 %
 % Accepts a single profile contained in pStruct, returned from 
-% selectIoosGliderFlatNcSensors.m, and writes a NetCDF file conforming to
+% mapIoosGliderFlatNcSensors.m, and writes a NetCDF file conforming to
 % the IOOS National Glider Data Assembly Standard Specification, version 2.
 %
 % Options:
@@ -17,13 +17,13 @@ function outFile = writeIoosGliderFlatNc(pStruct, varargin)
 % 'outdirectory', STRING: NetCDF files are written to the current working
 %   directory.  Use this option to specify an alternate path.
 %
-% See also writeIoosGliderFlatNc getIoosGliderFlatNcSensorMappings loadNcJsonSchema
+% See also mapIoosGliderFlatNcSensors getIoosGliderFlatNcSensorMappings loadNcJsonSchema
 %
 % ============================================================================
 % $RCSfile: writeIoosGliderFlatNc.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/export/nc/IOOS/DAC/writeIoosGliderFlatNc.m,v $
-% $Revision: 1.3 $
-% $Date: 2014/06/06 18:43:22 $
+% $Revision: 1.4 $
+% $Date: 2014/06/09 14:20:36 $
 % $Author: kerfoot $
 % ============================================================================
 %
