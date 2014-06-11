@@ -45,8 +45,8 @@ classdef Dbd < handle
     % ============================================================================
     % $RCSfile: Dbd.m,v $
     % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@Dbd/Dbd.m,v $
-    % $Revision: 1.9 $
-    % $Date: 2014/03/21 19:35:13 $
+    % $Revision: 1.10 $
+    % $Date: 2014/06/11 20:01:06 $
     % $Author: kerfoot $
     % ============================================================================
     %
@@ -480,7 +480,7 @@ classdef Dbd < handle
                     epoch2datenum(ts);
                 % Add the units to the obj.meta.sensorUnits
                 obj.sensorUnits.(drvSensor) =...
-                    'days since 0000-01-00 00:00:00 GMT';
+                    'days since 0000-01-01 00:00:00 GMT';
                 % Add the sensor to the list of newTsSensors
                 newTsSensors{t} = drvSensor;
                 % Add the datenum sensor to the available timestamp sensors
