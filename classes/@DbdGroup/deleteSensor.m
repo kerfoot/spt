@@ -1,10 +1,14 @@
 function deleteSensor(obj, varargin)
 %
-% Dbd.deleteSensor(sensor_names)
+% DbdGroup.deleteSensor(sensor_names)
 %
 % Permanently delete the sensor data for all sensors contained in sensor_names
-% and the Dbd.sensorUnits values from all Dbd instances in the DbdGroup 
-% instance. 
+% and the DbdGroup.sensorUnits values from all Dbd instances in the DbdGroup 
+% instance. The input argument is a string matching the sensor name to be
+% deleted.  
+%
+% The 'regexp' option may be used to pass a cell array of regular
+% expressions matching the sensors to be deleted.
 %
 % The following sensors are protected and, thus, cannot be deleted:
 %   Dbd.timestampSensor
@@ -12,12 +16,16 @@ function deleteSensor(obj, varargin)
 %   drv_proInds
 %   drv_proDir
 %
+% Name,value Options:
+%   regexp: CELL ARRAY - a cell array containing regular expressions matching
+%       the sensors to be deleted.
+%
 % See also DbdGroup DbdGroup.addSensor
 % ============================================================================
 % $RCSfile: deleteSensor.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@DbdGroup/deleteSensor.m,v $
-% $Revision: 1.3 $
-% $Date: 2013/11/27 14:36:48 $
+% $Revision: 1.4 $
+% $Date: 2014/06/11 20:01:42 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -73,7 +81,7 @@ else
                 end               
             otherwise
                 error(sprintf('%s:invalidOptionValue', app),...
-                    'Value for option %s must be a string or cell array of strings containing patterns',...
+                    'Invalid option specified: %s',...
                     name);
         end
     end
