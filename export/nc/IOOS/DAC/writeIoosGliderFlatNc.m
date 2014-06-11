@@ -22,8 +22,8 @@ function outFile = writeIoosGliderFlatNc(pStruct, varargin)
 % ============================================================================
 % $RCSfile: writeIoosGliderFlatNc.m,v $
 % $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/export/nc/IOOS/DAC/writeIoosGliderFlatNc.m,v $
-% $Revision: 1.5 $
-% $Date: 2014/06/09 15:18:51 $
+% $Revision: 1.6 $
+% $Date: 2014/06/11 20:02:52 $
 % $Author: kerfoot $
 % ============================================================================
 %
@@ -94,7 +94,7 @@ for x = 1:2:length(varargin)
             CLOBBER = value;
         case 'schema'
             if ~isstruct(value) || ~isequal(length(struct),1)
-                error(sprintf('%s:invalidOptionValue', ap),...
+                error(sprintf('%s:invalidOptionValue', app),...
                     'Value for option %s must be a structured array mapping attribute names to values',...
                     name);
             end
@@ -203,6 +203,8 @@ if ~isempty(SCHEMA)
         [~,I] = ismember(schemaAtts{a}, nciAtts);
         if isequal(I,0)
             I = length(nci.Attributes) + 1;
+        elseif isempty(deblank(SCHEMA.Attributes(a).Value))
+            continue;
         end
         nci.Attributes(I).Name = schemaAtts{a};
         nci.Attributes(I).Value = SCHEMA.Attributes(a).Value;
@@ -317,12 +319,16 @@ for v = 1:length(nci.Variables)
     % Loop through the SCHEMA attributes and update/add to the nci variable
     % attributes
     for a = 1:length(varAtts)
-        [~,I] = ismember(varAtts{a}, nciAtts);
-        if isequal(I,0)
-            I = length(nci.Variables(v).Attributes) + 1;
+        [~,J] = ismember(varAtts{a}, nciAtts);
+        if isequal(J,0)
+            J = length(nci.Variables(v).Attributes) + 1;
+        elseif ischar(SCHEMA.Variables(I).Attributes(a).Value) && isempty(deblank(SCHEMA.Variables(I).Attributes(a).Value))
+            continue;
+        elseif isempty(SCHEMA.Variables(I).Attributes(a).Value)
+            continue;
         end
-        nci.Variables(v).Attributes(I).Name = varAtts{a};
-        nci.Variables(v).Attributes(I).Value = SCHEMA.Attributes(a).Value;
+        nci.Variables(v).Attributes(J).Name = varAtts{a};
+        nci.Variables(v).Attributes(J).Value = SCHEMA.Variables(I).Attributes(a).Value;
     end
     
 end
