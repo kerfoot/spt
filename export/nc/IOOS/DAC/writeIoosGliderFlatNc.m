@@ -281,24 +281,26 @@ nci.Dimensions(trajDI).Unlimited = false;
 % Update the nci.Variables.Dimensions length and unlimited settings
 for v = 1:length(nci.Variables)
     
-    if isempty(nci.Variables(v).Dimensions)
-        continue;
-    end
+% % % % %     if strcmp(nci.Variables(v).Name, 'platform')
+% % % % %         keyboard;
+% % % % %     end
     
-    varDims = {nci.Variables(v).Dimensions.Name}';
-    
-    [~,I] = ismember('time', varDims);
-    if ~isequal(I,0)
-        nci.Variables(v).Dimensions(I).Length = timeLength;
-        nci.Variables(v).Dimensions(I).Unlimited = false;
-        nci.Variables(v).Size = timeLength;
-    end
-    
-    [~,I] = ismember('traj_strlen', varDims);
-    if ~isequal(I,0)
-        nci.Variables(v).Dimensions(I).Length = trajStrLength;
-        nci.Variables(v).Dimensions(I).Unlimited = false;
-        nci.Variables(v).Size = trajStrLength;
+    if ~isempty(nci.Variables(v).Dimensions)
+        varDims = {nci.Variables(v).Dimensions.Name}';
+
+        [~,I] = ismember('time', varDims);
+        if ~isequal(I,0)
+            nci.Variables(v).Dimensions(I).Length = timeLength;
+            nci.Variables(v).Dimensions(I).Unlimited = false;
+            nci.Variables(v).Size = timeLength;
+        end
+
+        [~,I] = ismember('traj_strlen', varDims);
+        if ~isequal(I,0)
+            nci.Variables(v).Dimensions(I).Length = trajStrLength;
+            nci.Variables(v).Dimensions(I).Unlimited = false;
+            nci.Variables(v).Size = trajStrLength;
+        end
     end
         
     % Skip the rest of the block if no SCHEMA was specified
