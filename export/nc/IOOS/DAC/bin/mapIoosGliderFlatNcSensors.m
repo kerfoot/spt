@@ -1,6 +1,6 @@
 function ncStruct = mapIoosGliderFlatNcSensors(pStruct, trajectoryTs, varargin)
 %
-% ncStruct = selectGliderFlatNcSensors(pStruct, varargin)
+% ncStruct = mapIoosGliderFlatNcSensors(pStruct, trajectoryTs[, varargin])
 %
 % Returns a structured array in which each element contains an individual
 % profile from pStruct that contains the NetCDF variable name, the native glider
