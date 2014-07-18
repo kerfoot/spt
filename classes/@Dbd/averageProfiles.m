@@ -137,7 +137,9 @@ end
     
 if PLOT
     
-    figure('PaperPosition', [0 0 11 8.5]);
+    figure('PaperPosition', [0 0 11 8.5],...
+        'RendererMode', 'auto',...
+        'Renderer', 'OpenGL');
     ax(1) = subplot(1,2,1);
     ax(2) = subplot(1,2,2);
     
