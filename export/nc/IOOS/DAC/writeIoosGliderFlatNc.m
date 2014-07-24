@@ -121,7 +121,7 @@ for x = 1:2:length(varargin)
 end
 
 % We need the template file
-NC_TEMPLATE = 'IOOS_Glider_NetCDF_Flat_v1.0.nc';
+NC_TEMPLATE = 'IOOS_Glider_NetCDF_v2.0.nc';
 if ~exist(NC_TEMPLATE, 'file')
     fprintf(2,...
         '%s:ncTemplateNotFound: The NetCDF template %s could not be found\n',...
@@ -259,7 +259,11 @@ NC_DIMS = {nci.Dimensions.Name}';
 % TIME dimension
 [~,timeDI] = ismember('time', NC_DIMS);
 [~,VI] = ismember('time', PROFILE_VARS);
-timeLength = length(pStruct.vars(VI).data);
+% Time dimension cannot have missing values, so get a row index of non-nan
+% values to remove records for variables dimensioned along time.
+goodT = find(~isnan(pStruct.vars(VI).data));
+timeLength = length(goodT);
+% timeLength = length(pStruct.vars(VI).data);
 nci.Dimensions(timeDI).Length = timeLength;
 nci.Dimensions(timeDI).Unlimited = false;
 
@@ -279,6 +283,7 @@ nci.Dimensions(trajDI).Length = trajStrLength;
 nci.Dimensions(trajDI).Unlimited = false;
 
 % Update the nci.Variables.Dimensions length and unlimited settings
+timeVars = {};
 for v = 1:length(nci.Variables)
     
 % % % % %     if strcmp(nci.Variables(v).Name, 'platform')
@@ -290,6 +295,7 @@ for v = 1:length(nci.Variables)
 
         [~,I] = ismember('time', varDims);
         if ~isequal(I,0)
+            timeVars{end+1} = nci.Variables(v).Name;
             nci.Variables(v).Dimensions(I).Length = timeLength;
             nci.Variables(v).Dimensions(I).Unlimited = false;
             nci.Variables(v).Size = timeLength;
@@ -363,13 +369,22 @@ for v = 1:length(PROFILE_VARS)
             '%s: Variable contains no data\n',...
             PROFILE_VARS{v});
         continue;
-    elseif ~isequal(length(pStruct.vars(v).data), nci.Variables(I).Size)
+    end
+    
+    % If this variable uses 'time' as a dimension, remove any records that have
+    % a missing timestamp
+    if ismember(PROFILE_VARS{v}, timeVars)
+        pStruct.vars(v).data = pStruct.vars(v).data(goodT);
+    end
+    
+    if ~isequal(length(pStruct.vars(v).data), nci.Variables(I).Size)
         fprintf(2,...
             '%s: Data array does not match NetCDF variable size definition\n',...
             PROFILE_VARS{v});
         continue;
     end
     
+    % Convert matlab datenum times to unix times if the variable is 'time'
     if ~isempty(regexp(PROFILE_VARS{v}, 'time', 'once'))
         meanVal = mean(pStruct.vars(v).data(~isnan(pStruct.vars(v).data)));
         if meanVal < DATENUM_CUTOFF
