@@ -100,7 +100,7 @@ file_list = dir(fullfile(DBD_DIR, ['*' DBD_GLOB]));
 
 % Match entries with the following pattern: '_\d{4}_\d{1,3}_\d{1,3}_\d{1,3}_'
 f = {file_list.name}';
-match = regexp(f, '_\d{4}_\d{1,3}_\d{1,3}_\d{1,3}[_|\.]');
+match = regexp(f, '[_|\-]\d{4}[_|\-]\d{1,3}[_|\-]\d{1,3}[_|\-]\d{1,3}[_|\-|\.]');
 % Eliminate entries that don't match
 file_list(cellfun(@isempty, match)) = [];
 
