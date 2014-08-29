@@ -125,29 +125,20 @@ classdef DbdGroup < handle
             % Matlab requires us to fill in empty object arrays from bottom to
             % top.  We'll sort them later
             for f = 1:numDbds;
-% % % % %                 if isempty(varargin)
-% % % % %                     try
-% % % % %                         dbd = Dbd(sourceFiles{f});
-% % % % %                     catch ME
-% % % % %                         fprintf(2,...
-% % % % %                             '%s:%s\n',...
-% % % % %                             ME.identifier,...
-% % % % %                             ME.message);
-% % % % %                         continue;
-% % % % %                     end
-% % % % %                 else
-                    try
-                        dbd = Dbd(sourceFiles{f}, varargin{:});
-                    catch ME
-                        fprintf(2,...
-                            '%s: %s\n',...
-                            ME.identifier,...
-                            ME.message);
+                try
+                    dbd = Dbd(sourceFiles{f}, varargin{:});
+                    if isequal(length(dbd.sensors),0)
+                        continue;
                     end
-% % % % %                 end
-                
-                % Add the Dbd instance
-                obj.addDbd(dbd);
+                    % Add the Dbd instance
+                    obj.addDbd(dbd);
+                catch ME
+                    fprintf(2,...
+                        '%s: %s\n',...
+                        ME.identifier,...
+                        ME.message);
+                end
+               
             end
             
         end
