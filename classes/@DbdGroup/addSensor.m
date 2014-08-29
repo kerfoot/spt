@@ -1,6 +1,6 @@
 function addSensor(obj, sensor_name, sensor_data, sensor_units)
 %
-% DbdGroup.addSensor(sensor_data, sensor_name[, sensor_units])
+% DbdGroup.addSensor(sensor_name, sensor_data[, sensor_units])
 %
 % Add the sensor data array to the DbdGroup instance under the specified 
 % sensor name.  If a third argument (sensor_units) is specified, these units 
@@ -10,8 +10,8 @@ function addSensor(obj, sensor_name, sensor_data, sensor_units)
 % instances contained in DbdGroup.dbds.
 % 
 % Arguments:
-%   sensor_data: a Rx1 array with length equal to sum(DbdGroup.rows)
 %   sensor_name: string specifying the sensor name
+%   sensor_data: a Rx1 array with length equal to sum(DbdGroup.rows)
 %   sensor_units (optional): string specifying the sensor units.  Defaults
 %       to 'nodim'.
 %
