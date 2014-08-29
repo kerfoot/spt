@@ -68,7 +68,7 @@ classdef Dbd < handle
     end
         
     properties (GetAccess = public, SetAccess = private)
-        sensorUnits = [];
+        sensorUnits = struct();
     end
     
     properties (Dependent = true, SetAccess = private)
@@ -405,9 +405,25 @@ classdef Dbd < handle
                 fclose(fid);
                 
                 % Read in the data matrix using beginning at the first line
-                % after the header, which was already read.
-                data = dlmread(sourceFile, ' ', lineNumber, 0);
+                % after the header, which was already read.  Return if the data
+                % file is either not parsed or is empty
+                try
+                    data = dlmread(sourceFile, ' ', lineNumber, 0);
+                catch
+                    fprintf(2,...
+                        'Dbd:emtpyFile:%s: The source file contains no valid row data.\n',...
+                        sourceFile);
+                    return;
+                end
 
+                % Make sure data was parsed
+                if isempty(data)
+                    fprintf(2,...
+                        'Dbd:emtpyFile:%s: The source file contains no row data.\n',...
+                        sourceFile);
+                    return;
+                end
+                
                 % If the 2 cell arrays are of equal length:
                 % 1. Skip any sensors not contained in SENSOR_LIST, which
                 %   may have been user-specified.
