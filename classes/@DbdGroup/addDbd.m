@@ -2,9 +2,10 @@ function addDbd(obj, dbdInstance)
 %
 % DbdGroup.addDbd(Dbd)
 %
-% Add an instance of the Dbd class to the DbdGroup.  The Dbd instance is
-% added to DbdGroup.dbds and any new sensor units contained in the Dbd
-% instance are added to DbdGroup.sensorUnits.
+% Add a valid instance of the Dbd class to the DbdGroup.  The Dbd instance 
+% is added to DbdGroup.dbds only if the instance contains sensors 
+% (Dbd.sensors) and any new sensor units contained in the Dbd instance are 
+% added to DbdGroup.sensorUnits.
 %
 % See also DbdGroup DbdGroup.removeDbd
 % ============================================================================
@@ -25,6 +26,11 @@ if ~isa(dbdInstance, 'Dbd')
 elseif ismember(dbdInstance.segment, obj.segments)
     fprintf(2,...
         'DbdGroup:duplicateDbd:%s: Dbd instance is already a member of the DbdGroup.',...
+        dbdInstance.segment);
+    return;
+elseif isempty(dbdInstance.sensors)
+    fprintf(2,...
+        'DbdGroup:emptyDbd:%s: Dbd instance does not contain any sensor data\n',...
         dbdInstance.segment);
     return;
 end
