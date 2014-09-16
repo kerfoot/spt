@@ -8,7 +8,7 @@ glider data files
     kerfoot@marine.rutgers.edu
     (848) 932-3344
 
-Documentation for this toolbox currently resides [here](http://rucool.marine.rutgers.edu/manuals/glider/thoughts-ideas-and-tips-for-slocum-glider-data-management).  [Wiki](https://github.com/kerfoot/spt/wiki) documentation is currently under contstruction.
+Documentation for this toolbox is available on the [Wiki](https://github.com/kerfoot/spt/wiki).
 
 Background
 ----------
