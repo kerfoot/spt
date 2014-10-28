@@ -8,7 +8,7 @@ glider data files
     kerfoot@marine.rutgers.edu
     (848) 932-3344
 
-Documentation for this toolbox currently resides [here](http://rucool.marine.rutgers.edu/manuals/glider/thoughts-ideas-and-tips-for-slocum-glider-data-management).  [Wiki](https://github.com/kerfoot/spt/wiki) documentation is currently under contstruction.
+Documentation for this toolbox is available on the [Wiki](https://github.com/kerfoot/spt/wiki).
 
 Background
 ----------
@@ -28,9 +28,9 @@ The toolbox currently uses the [CSIRO Matlab EOS-80 Seawater Library](http://www
     
 A copy of the last stable version can also be found [here](http://marine.rutgers.edu/~kerfoot/slocum/code/seawater_ver3_3.tar).
 
-Development of this toolbox has been stopped in favor of the Gibbs SeaWater
+Development of the [CSIRO Matlab EOS-80 Seawater Library](http://www.cmar.csiro.au/datacentre/ext_docs/seawater.htm) toolbox has been stopped in favor of the Gibbs SeaWater
 (GSW) Oceanographic Toolbox of the International Thermodynamic Equation of
 Seawater (TEOS-10), which can be found [here](http://www.teos-10.org/software/gsw_matlab_v3_02.zip).
 
-As of September 2013, I have not made the switch to the GSW toolbox.
+As of <b>August 2014</b>, I have not made the switch to the GSW toolbox.
 
