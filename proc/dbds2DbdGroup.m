@@ -154,8 +154,8 @@ PRO_MIN_NUM_POINTS = NaN;
 PRO_MIN_DEPTH = NaN;
 PRO_MIN_DEPTH_SPAN = NaN;
 PROCESS_GPS = true;
-% Set to false to prevent saving of individual dbd instances
-SAVE_DBD_DIR = '';
+% % % % % % Set to false to prevent saving of individual dbd instances
+% % % % % SAVE_DBD_DIR = '';
 for x = 1:2:length(varargin)
     
     name = varargin{x};
@@ -164,20 +164,24 @@ for x = 1:2:length(varargin)
     switch lower(name)
         
         case 'includesensors'
-            if ischar(value)
-                value = {value}';
-            elseif ~iscellstr(value)
-                error(sprintf('%s:invalidOptionValue', app),...
-                    'Value for option must be a string or cell array of strings.');
+            if ~isempty(value)
+                if ischar(value)
+                    value = {value}';
+                elseif ~iscellstr(value)
+                    error(sprintf('%s:invalidOptionValue', app),...
+                        'Value for option must be a string or cell array of strings.');
+                end
             end
             INCLUDE_SENSORS = value;
             
         case 'excludesensors'
-            if ischar(value)
-                value = {value}';
-            elseif ~iscellstr(value)
-                error(sprintf('%s:invalidOptionValue', app),...
-                    'Value for option must be a string or cell array of strings.');
+            if ~isempty(value)
+                if ischar(value)
+                    value = {value}';
+                elseif ~iscellstr(value)
+                    error(sprintf('%s:invalidOptionValue', app),...
+                        'Value for option must be a string or cell array of strings.');
+                end
             end
             EXCLUDE_SENSORS = value;
             
@@ -318,13 +322,13 @@ for x = 1:2:length(varargin)
             end
             PROCESS_GPS = value;
             
-        case 'dbddir'
-            if ~ischar(value) || ~isdir(value)
-                error(sprintf('%s:invalidOptionValue', app),...
-                    'Value for %s must be a string specifying a valid directory',...
-                    name);
-            end
-            SAVE_DBD_DIR = value;
+% % % % %         case 'dbddir'
+% % % % %             if ~isempty(value) && ~ischar(value) || ~isdir(value)
+% % % % %                 error(sprintf('%s:invalidOptionValue', app),...
+% % % % %                     'Value for %s must be a string specifying a valid directory',...
+% % % % %                     name);
+% % % % %             end
+% % % % %             SAVE_DBD_DIR = value;
             
         otherwise
             error('dbds2DbdGroup:invalidOption',...
@@ -372,6 +376,11 @@ for d = 1:length(dbd_list)
             ME.identifier,...
             ME.message,...
             dbd_list{d});
+        continue;
+    end
+    
+    % Skip this file if the Dbd instance does not contain any sensors or data
+    if isempty(dbd.sensors)
         continue;
     end
     
@@ -477,20 +486,20 @@ for d = 1:length(dbd_list)
         dbd.proMinDepthSpan = PRO_MIN_DEPTH_SPAN;
     end
     
-    % Save the Dbd instance if SAVE_DBD_DIR contains a valid directory
-    if ~isempty(SAVE_DBD_DIR)
-        try
-            dbd_file = fullfile(SAVE_DBD_DIR, [dbd.segment '_Dbd_qc0.mat']);
-            fprintf('%s: Saving Dbd instance %s\n',...
-                app,...
-                dbd_file);
-            save(dbd_file, 'dbd');
-        catch ME
-            warning('%s: %s\n',...
-                ME.identifier,...
-                ME.message);
-        end
-    end
+% % % % %     % Save the Dbd instance if SAVE_DBD_DIR contains a valid directory
+% % % % %     if ~isempty(SAVE_DBD_DIR)
+% % % % %         try
+% % % % %             dbd_file = fullfile(SAVE_DBD_DIR, [dbd.segment '_Dbd_qc0.mat']);
+% % % % %             fprintf('%s: Saving Dbd instance %s\n',...
+% % % % %                 app,...
+% % % % %                 dbd_file);
+% % % % %             save(dbd_file, 'dbd');
+% % % % %         catch ME
+% % % % %             warning('%s: %s\n',...
+% % % % %                 ME.identifier,...
+% % % % %                 ME.message);
+% % % % %         end
+% % % % %     end
     
     % Add the instance
     dgroup.addDbd(dbd);
