@@ -9,7 +9,7 @@ function outFile = writeIoosGliderFlatNc(pStruct, varargin)
 % Options:
 % 'clobber', [true or false]: by default, existing NetCDF files are not 
 %   overwritten.  Set to true to overwrite existing files.
-% 'schema', STRUCT: structured array mapping global NetCDF file
+% 'ncschema', STRUCT: structured array mapping global NetCDF file
 %   attributes to values.  If not specified, default values are taken from 
 %   the NetCDF template file.
 % 'outfile', STRING: the NetCDF filename is constructed from the .meta
@@ -77,7 +77,7 @@ end
 
 % Default options
 CLOBBER = false;
-SCHEMA = [];
+NC_SCHEMA = [];
 OUT_DIR = pwd;
 outFile = '';
 % Process options
@@ -92,13 +92,13 @@ for x = 1:2:length(varargin)
                     name);
             end
             CLOBBER = value;
-        case 'schema'
+        case 'ncschema'
             if ~isstruct(value) || ~isequal(length(struct),1)
                 error(sprintf('%s:invalidOptionValue', app),...
                     'Value for option %s must be a structured array mapping attribute names to values',...
                     name);
             end
-            SCHEMA = value;
+            NC_SCHEMA = value;
         case 'outfilename'
             if ~ischar(value) || isempty(value)
                 error(sprintf('%s:invalidOptionValue', app),...
@@ -178,36 +178,45 @@ else
 end
 
 % Delete the current file, if it exists and CLOBBER is set to true
-if CLOBBER && exist(outFile, 'file')
-    fprintf(1,...
-        'Clobbering existing file: %s\n',...
-        outFile);
-    try
-        delete(outFile);
-    catch ME
-        fprintf('%s:%s\n',...
-            ME.identifier,...
-            ME.message);
+if exist(outFile, 'file')
+    if CLOBBER
+        fprintf(1,...
+            'Clobbering existing file: %s\n',...
+            outFile);
+        try
+            delete(outFile);
+        catch ME
+            fprintf('%s:%s\n',...
+                ME.identifier,...
+                ME.message);
+            return;
+        end
+    else
+        fprintf(2,...
+            '%s: File already exists and will not be overwritten: %s\n',...
+            app,...
+            outFile);
+        outFile = '';
         return;
     end
 end
 
-% If a schema structured array was specified, update the global attributes
-% with the elements in SCHEMA.Attributes
+% If a ncschema structured array was specified, update the global attributes
+% with the elements in NC_SCHEMA.Attributes
 schemaVars = {};
-if ~isempty(SCHEMA)
-    schemaVars = {SCHEMA.Variables.Name}';
-    schemaAtts = {SCHEMA.Attributes.Name}';
+if ~isempty(NC_SCHEMA)
+    schemaVars = {NC_SCHEMA.Variables.Name}';
+    schemaAtts = {NC_SCHEMA.Attributes.Name}';
     nciAtts = {nci.Attributes.Name}';
     for a = 1:length(schemaAtts)
         [~,I] = ismember(schemaAtts{a}, nciAtts);
         if isequal(I,0)
             I = length(nci.Attributes) + 1;
-        elseif isempty(deblank(SCHEMA.Attributes(a).Value))
+        elseif isempty(deblank(NC_SCHEMA.Attributes(a).Value))
             continue;
         end
         nci.Attributes(I).Name = schemaAtts{a};
-        nci.Attributes(I).Value = SCHEMA.Attributes(a).Value;
+        nci.Attributes(I).Value = NC_SCHEMA.Attributes(a).Value;
     end
 end
     
@@ -309,34 +318,34 @@ for v = 1:length(nci.Variables)
         end
     end
         
-    % Skip the rest of the block if no SCHEMA was specified
+    % Skip the rest of the block if no NC_SCHEMA was specified
     if isempty(schemaVars)
         continue;
     end
     
-    % Skip the rest of this block if this variable is not defined in the SCHEMA
+    % Skip the rest of this block if this variable is not defined in the NC_SCHEMA
     [~,I] = ismember(nci.Variables(v).Name, schemaVars);
     if isequal(I,0)
         continue;
     end
     
-    % List of SCHEMA variable attributes
-    varAtts = {SCHEMA.Variables(I).Attributes.Name}';
+    % List of NC_SCHEMA variable attributes
+    varAtts = {NC_SCHEMA.Variables(I).Attributes.Name}';
     % List of nci variable attributes
     nciAtts = {nci.Variables(v).Attributes.Name}';
-    % Loop through the SCHEMA attributes and update/add to the nci variable
+    % Loop through the NC_SCHEMA attributes and update/add to the nci variable
     % attributes
     for a = 1:length(varAtts)
         [~,J] = ismember(varAtts{a}, nciAtts);
         if isequal(J,0)
             J = length(nci.Variables(v).Attributes) + 1;
-        elseif ischar(SCHEMA.Variables(I).Attributes(a).Value) && isempty(deblank(SCHEMA.Variables(I).Attributes(a).Value))
+        elseif ischar(NC_SCHEMA.Variables(I).Attributes(a).Value) && isempty(deblank(NC_SCHEMA.Variables(I).Attributes(a).Value))
             continue;
-        elseif isempty(SCHEMA.Variables(I).Attributes(a).Value)
+        elseif isempty(NC_SCHEMA.Variables(I).Attributes(a).Value)
             continue;
         end
         nci.Variables(v).Attributes(J).Name = varAtts{a};
-        nci.Variables(v).Attributes(J).Value = SCHEMA.Variables(I).Attributes(a).Value;
+        nci.Variables(v).Attributes(J).Value = NC_SCHEMA.Variables(I).Attributes(a).Value;
     end
     
 end
@@ -344,6 +353,9 @@ end
 % Create the file
 try
     ncwriteschema(outFile, nci);
+    fprintf(1,...
+        'Writing NetCDF: %s\n',...
+        outFile);
 catch ME
     fprintf(2,...
         '%s:%s: %s\n',...
@@ -365,9 +377,9 @@ for v = 1:length(PROFILE_VARS)
             PROFILE_VARS{v});
         continue;
     elseif isempty(pStruct.vars(v).data)
-        fprintf(2,...
-            '%s: Variable contains no data\n',...
-            PROFILE_VARS{v});
+% % % % %         fprintf(2,...
+% % % % %             '%s: Variable contains no data\n',...
+% % % % %             PROFILE_VARS{v});
         continue;
     end
     
@@ -378,9 +390,9 @@ for v = 1:length(PROFILE_VARS)
     end
     
     if ~isequal(length(pStruct.vars(v).data), nci.Variables(I).Size)
-        fprintf(2,...
-            '%s: Data array does not match NetCDF variable size definition\n',...
-            PROFILE_VARS{v});
+% % % % %         fprintf(2,...
+% % % % %             '%s: Data array does not match NetCDF variable size definition\n',...
+% % % % %             PROFILE_VARS{v});
         continue;
     end
     
