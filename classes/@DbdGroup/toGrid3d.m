@@ -184,15 +184,15 @@ for p_ind = 1:length(p)
 
     % Fill in the X value
     X_VAL = mean(p(p_ind).(X_SENSOR)(~isnan(p(p_ind).(X_SENSOR))));
-    if isnan(X_VAL)
-        keyboard;
-    end
+%    if isnan(X_VAL)
+%        keyboard;
+%    end
     XI(:,p_ind) = X_VAL;
     % Fill in the Y value
     Y_VAL = mean(p(p_ind).(Y_SENSOR)(~isnan(p(p_ind).(Y_SENSOR))));
-    if isnan(Y_VAL)
-        keyboard;
-    end
+%    if isnan(Y_VAL)
+%        keyboard;
+%    end
     YI(:,p_ind) = Y_VAL;
     
     % Create the depth-sensor array
