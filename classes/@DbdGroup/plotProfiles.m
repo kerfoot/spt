@@ -10,7 +10,7 @@ function h = plotProfiles(obj, sensorName, varargin)
 % plotted profiles will contain the interpolated depths.
 %
 % The return value is the figure handle, which is assigned a 'Tag' name
-% with the following format: 'Dbd.segment_profiles'.
+% with the following format: 'sensorName_profiles'.
 %
 % Options:
 % 't0' [NUMBER]: datenum value specifying the minimum profile time to include.
@@ -80,8 +80,7 @@ end
 pStruct = obj.toProfiles('sensors', sensorName);
 if isempty(pStruct)
     fprintf(2,...
-        '%s: Segment contains no profiles\n',...
-        obj.segment);
+        'DbdGroup contains no profiles\n');
     return;
 end
 
@@ -100,8 +99,7 @@ if ~isnan(t1)
 end
 if isempty(pStruct)
     fprintf(2,...
-        '%s: Segment contains no profiles in the specified time interval\n',...
-        obj.segment);
+        'DbdGroup contains no profiles in the specified time interval\n');
     return;
 end
 
@@ -150,7 +148,7 @@ for x = 1:length(pStruct)
     if isempty(goodRows)
         fprintf(1,...
             '%s: Profile %0.0f contains no records.\n',...
-            obj.segment,...
+            pStruct(x).segment,...
             x);
         continue;
     end
