@@ -78,6 +78,7 @@ elseif ~isequal(mod(length(varargin),2),0)
 end
 
 % Default options
+NC_TEMPLATE = which('IOOS_trajectory_template.nc');
 OUTPUT_DIR = pwd;
 INTERP_SENSORS = {};
 INTERP_ALL_SENSORS = false;
@@ -89,6 +90,13 @@ for x = 1:2:length(varargin)
     name = varargin{x};
     value = varargin{x+1};
     switch lower(name)
+        case 'nctemplate'
+            if ~ischar(value) || ~exist(value, 'file')
+                fprintf('%s:invalidOption: Invalid NetCDF template specified\n',...
+                    app);
+                return;
+            end
+            NC_TEMPLATE = value;
         case 'outputdir'
             if ~ischar(value) || ~isdir(value)
                 error(sprintf('%s:invalidOptionValue', app),...
@@ -137,6 +145,19 @@ for x = 1:2:length(varargin)
                 'Invalid option specified: %s',...
                 name);
     end
+end
+
+% Make sure NC_TEMPLATE is valid
+if isempty(NC_TEMPLATE)
+    fprintf('%s:invalidOption: No NetCDF template specified: %s\n',...
+        app,...
+        NC_TEMPLATE);
+    return;
+elseif ~exist(NC_TEMPLATE, 'file')
+    fprintf('%s:invalidOption: Invalid NetCDF template specified: %s\n',...
+        app,...
+        NC_TEMPLATE);
+    return;
 end
 
 % Create the NetCDF file name
@@ -224,7 +245,7 @@ if TF && isempty(sensor_data(zr).data)
 end
 
 % Create an instance of the GTrajectoryNc class
-nc = GTrajectoryNc();
+nc = GTrajectoryNc(NC_TEMPLATE);
 
 % Interpolate all sensors if INTERP_ALL_SENSORS is set to true
 if INTERP_ALL_SENSORS
@@ -535,8 +556,8 @@ end
 % Set some global attributes
 
 % Default global comment
-nc.setGlobalAttribute('comment',...
-    'Data provided by the Mid-Atlantic Regional Association Coastal Ocean Observing System');
+% nc.setGlobalAttribute('comment',...
+%     'Data provided by the Mid-Atlantic Regional Association Coastal Ocean Observing System');
 
 nc_ts = datestr(now, 'yyyy-mm-ddTHH:MM:SSZ');
 nc.setGlobalAttribute('source_file', dbd.sourceFile);

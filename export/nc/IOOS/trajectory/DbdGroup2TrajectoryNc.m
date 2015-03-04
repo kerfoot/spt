@@ -16,6 +16,7 @@ elseif ~isequal(mod(length(varargin),2),0)
 end
 
 % Default options
+NC_TEMPLATE = which('IOOS_trajectory_template.nc');
 OUTPUT_DIR = pwd;
 INTERP_SENSORS = {};
 INTERP_ALL_SENSORS = false;
@@ -26,6 +27,13 @@ for x = 1:2:length(varargin)
     name = varargin{x};
     value = varargin{x+1};
     switch lower(name)
+        case 'nctemplate'
+            if ~ischar(value) || ~exist(value, 'file')
+                fprintf('%s:invalidOption: Invalid NetCDF template specified\n',...
+                    app);
+                return;
+            end
+            NC_TEMPLATE = value;
         case 'outputdir'
             if ~ischar(value) || ~isdir(value)
                 error(sprintf('%s:invalidOptionValue', app),...
@@ -69,6 +77,18 @@ for x = 1:2:length(varargin)
     end
 end
 
+% Make sure NC_TEMPLATE is valid
+if isempty(NC_TEMPLATE)
+    fprintf('%s:invalidOption: No NetCDF template specified: %s\n',...
+        app,...
+        NC_TEMPLATE);
+    return;
+elseif ~exist(NC_TEMPLATE, 'file')
+    fprintf('%s:invalidOption: Invalid NetCDF template specified: %s\n',...
+        app,...
+        NC_TEMPLATE);
+    return;
+end
 % Make sure there are segments in dgroup.newSegments
 if isempty(dgroup.newSegments)
     fprintf(1,...
@@ -97,6 +117,7 @@ for s = 1:length(dgroup.newSegments)
     
     try
         nc_file = Dbd2TrajectoryNc(dbd,...
+            'nctemplate', NC_TEMPLATE,...
             'outputdir', OUTPUT_DIR,...
             'interpsensors', INTERP_SENSORS,...
             'interpallsensors', INTERP_ALL_SENSORS,...
