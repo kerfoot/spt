@@ -7,6 +7,7 @@ function outFile = writeIoosGliderFlatNc(pStruct, varargin)
 % the IOOS National Glider Data Assembly Standard Specification, version 2.
 %
 % Options:
+% 'mode', [STRING]: file type which can be either 'rt' (real-time) or 'delayed'.
 % 'clobber', [true or false]: by default, existing NetCDF files are not 
 %   overwritten.  Set to true to overwrite existing files.
 % 'ncschema', STRUCT: structured array mapping global NetCDF file
@@ -53,6 +54,9 @@ REQUIRED_NC_VARS = {'time',...
     'profile_lat',...
     'profile_lon',...
     }';
+MODES = {'rt',...
+    'delayed',...
+    }';
 DATENUM_CUTOFF = datenum(2100,1,1);
 % Validate input args
 if nargin < 2
@@ -80,6 +84,7 @@ CLOBBER = false;
 NC_SCHEMA = [];
 OUT_DIR = pwd;
 outFile = '';
+MODE = MODES{1};
 % Process options
 for x = 1:2:length(varargin)
     name = varargin{x};
@@ -113,6 +118,15 @@ for x = 1:2:length(varargin)
                     name);
             end
             OUT_DIR = value;
+        case 'mode'
+            if ~ischar(value) || isempty(value) || ~ismember(value, MODES)
+                fprintf(2,...
+                    '%s: Value for option %s must be a string specifying the file type (''realtime'' or ''delayed'')\n',...
+                    app,...
+                    name);
+                return;
+            end
+            MODE = value;
         otherwise
             error(sprintf('%s:invalidOption', app),...
                 'Invalid option specified: %s',...
@@ -165,7 +179,10 @@ end
 % Create the filename, if not specified
 if isempty(outFile)
     outFile = fullfile(OUT_DIR,...
-        sprintf('%s-%s.nc', pStruct.meta.glider, datestr(pStruct.meta.startDatenum, 'yyyymmddTHHMM')));
+        sprintf('%s_%s_%s.nc',...
+            pStruct.meta.glider,...
+            datestr(pStruct.meta.startDatenum, 'yyyymmddTHHMM'),...
+            MODE));
 else
     ncP = fileparts(outFile);
     if ~isdir(ncP)
