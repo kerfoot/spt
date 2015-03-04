@@ -18,8 +18,11 @@ function dgroup = dbds2DbdGroup(dbd_list, varargin)
 %
 % Options must be specified as name, value pairs:
 %
-%   'sensors', [CELL ARRAY]
+%   'includesensors', [CELL ARRAY]
 %       List of sensor names to include in each Dbd instance.
+%
+%   'excludesensors', [CELL ARRAY]
+%       List of sensors names to exclude from each Dbd instance.
 %
 %   'timestampsensor', [STRING or CELL ARRAY]
 %       Sensor name to be used as the timestamp sensor, Dbd.timestampSensor, 
