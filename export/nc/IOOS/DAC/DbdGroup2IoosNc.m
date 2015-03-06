@@ -1,4 +1,26 @@
 function num_files = DbdGroup2IoosNc(dgroup, trajectoryTs, varargin)
+%
+% outFile = writeIoosGliderFlatNc(pStruct[,varargin])
+%
+% Accepts a single profile contained in pStruct, returned from 
+% mapIoosGliderFlatNcSensors.m, and writes a NetCDF file conforming to
+% the IOOS National Glider Data Assembly Standard Specification, version 2.
+%
+% Options:
+% 'clobber', [true or false]: by default, existing NetCDF files are not 
+%   overwritten.  Set to true to overwrite existing files.
+% 'ncschema', STRUCT: structured array mapping global NetCDF file
+%   attributes to values.  If not specified, default values are taken from 
+%   the NetCDF template file.
+% 'outputdir', STRING: NetCDF files are written to the current working
+%   directory.  Use this option to specify an alternate path.
+% 'profiletype', STRING: type of profile to process.  Acceptable values are 'd'
+%   (down), 'u' (up) or 'a' (all).  Default is all.
+% 'startprofilenum', NUMBER: Number specifying the first value that should be
+%   used for the NetCDF profile_id variable, which defaults to 1.  This value is
+%   incremented for each subsequent profile.
+% 
+% See also mapIoosGliderFlatNcSensors writeIoosGliderFlatNc
 
 num_files = 0;
 app = mfilename;
@@ -30,14 +52,14 @@ OUTPUT_DIR = pwd;
 INTERP_SENSORS = {};
 INTERP_ALL_SENSORS = false;
 CLOBBER = true;
-PROFILE_TYPE = 'd';
+PROFILE_TYPE = PROFILE_TYPES{1};
 FIRST_PROFILE_NUM = 1;
 % Process option
 for x = 1:2:length(varargin)
     name = varargin{x};
     value = varargin{x+1};
     switch lower(name)
-        case 'schema'
+        case 'ncschema'
             if ~isstruct(value)
                 fprintf('%s:invalidOption: Invalid NetCDF schema specified\n',...
                     app);
