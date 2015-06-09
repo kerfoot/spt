@@ -259,7 +259,7 @@ if isequal(I,0)
     I = length(nci.Attributes) + 1;
     nci.Attributes(I).Name = 'history';
 end
-nci.Attributes(I).Value = [datestr(now, 'yyyy-mm-ddTHH:MM:SSZ') ' ' mfilename('fullpath') '.m'];
+nci.Attributes(I).Value = [ nci.Attributes(I).Value, datestr(now, 'yyyy-mm-ddTHH:MM:SSZ') ' ' mfilename('fullpath') '.m' ];
 % title and id identifier
 id = sprintf('%s-%s',...
     pStruct.meta.glider,...
