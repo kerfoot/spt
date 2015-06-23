@@ -17,16 +17,11 @@ function outFile = writeIoosGliderFlatNc(pStruct, varargin)
 %   field.  Use this option to specify a custom filename.
 % 'outdirectory', STRING: NetCDF files are written to the current working
 %   directory.  Use this option to specify an alternate path.
+% 'mode', STRING: the state of the dataset, which can be either 'rt' for
+%   real-time (i.e.: sbd/tbd  files) or 'delayed' for a recovered dataset (i.e.:
+%   dbd/ebd files).  Default is rt.
 %
 % See also mapIoosGliderFlatNcSensors getIoosGliderFlatNcSensorMappings loadNcJsonSchema
-%
-% ============================================================================
-% $RCSfile: writeIoosGliderFlatNc.m,v $
-% $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/export/nc/IOOS/DAC/writeIoosGliderFlatNc.m,v $
-% $Revision: 1.6 $
-% $Date: 2014/06/11 20:02:52 $
-% $Author: kerfoot $
-% ============================================================================
 %
 
 outFile = '';
@@ -181,7 +176,7 @@ if isempty(outFile)
     outFile = fullfile(OUT_DIR,...
         sprintf('%s_%s_%s.nc',...
             pStruct.meta.glider,...
-            datestr(pStruct.meta.startDatenum, 'yyyymmddTHHMM'),...
+            datestr(pStruct.meta.startDatenum, 'yyyymmddTHHMMZ'),...
             MODE));
 else
     ncP = fileparts(outFile);
