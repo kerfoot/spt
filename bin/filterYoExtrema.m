@@ -1,11 +1,21 @@
-function [newTs,newR] = filterYoExtrema(tz, origTs, varargin)
+function [newTs,newR, stuck_flag] = filterYoExtrema(tz, origTs, varargin)
 %
-% [newTs,newR] = filterYoExtrema(tz, origTs, varargin)
+% [newTs,newR, stuck_flag] = filterYoExtrema(tz, origTs, varargin)
 % 
 % Returns the timestamps and row indices corresponding to valid profiles
 % contained in the time-depth array (tz) and bound by the timestamps contained
-% in origTs (see findYoExtrema.m).  The following tests are performed to
-% determine if a profile is valid:
+% in origTs (see findYoExtrema.m).  Also returns an array with the same
+% number of rows as tz denoting the result of the stuck glider test if the
+% test was run.  The 
+% following values are valid for stuck_flag:
+%   NaN : not evaluated
+%   0   : glider not stuck
+%   1   : glider stuck
+%
+% Be default, the glider is deemed to be stuck if the change in velocity
+% between successive non-NaN points is exactly 0.
+%
+% The following tests are performed to determine if a profile is valid:
 %
 % 1. Profile must include depths below 1 meter.
 % 2. Profile must include at least 3 points.
@@ -29,6 +39,9 @@ function [newTs,newR] = filterYoExtrema(tz, origTs, varargin)
 %   seconds.
 % 'plot': set to true to plot the yo with the newly indexed profiles.  Default
 %   is false.
+% 'stuckval': set to NaN or a number < 0 to skip the stuck value test.
+%   Default is to run the stuck value test with any velocity value == 0
+%   failing.
 % 
 % See also findYoExtrema
 % ============================================================================
@@ -67,12 +80,6 @@ elseif ~isequal(size(tz,2),2)
         '%s E: First argument must be a 2-column array of time/depth values\n',...
         stack.name);
     return;
-elseif isempty(origTs)
-% % % % %     stack = dbstack;
-% % % % %     fprintf(2,...
-% % % % %         '%s E: Timestamps (origTs) array is empty\n',...
-% % % % %         stack.name);
-% % % % %     return;
 elseif ~isequal(size(origTs,2),2)
     stack = dbstack;
     fprintf(2,...
@@ -86,6 +93,11 @@ NUM_PROFILE_POINTS = 3;
 MIN_PROFILE_DEPTH_SPAN = 0;
 MIN_PROFILE_TIME_SPAN = 10;
 MIN_DEPTH = 0;
+% Average vertical velocity of a glider used to calculate how long a
+% profile should take to complete
+AVG_VERT_VELOCITY = 0.10;
+% Stuck glider value
+STUCK_VAL = 0;
 % Don't plot the yo by default
 PLOT_YO = false;
 
@@ -146,6 +158,15 @@ for x = 1:2:length(varargin)
                 return;
             end
             PLOT_YO = value;
+        case 'stuckval'
+            if ~isequal(numel(value),1) || ~isnumeric(value)
+                fprintf(2,...
+                    '%s: E - %s must be a single number\n',...
+                    caller,...
+                    name);
+                return;
+            end
+            STUCK_VAL = value;
         otherwise
             fprintf(2,...
                 '%s E - Unknown option specified: %s\n',...
@@ -170,6 +191,18 @@ if PLOT_YO
     datetick('x', 'HH:MM');
 end
 
+% Calculate and eliminate any vertical velocities that are equal to
+% STUCK_VAL if it contains a number >= 0
+stuck_flag = nan(size(tz,1),1);
+if ~isnan(STUCK_VAL) && STUCK_VAL >= 0
+    g = find(all(~isnan(tz(:,[1 2])),2));
+    v = stuck_flag;
+    v(g(2:end)) = diff(tz(g,2))./diff(tz(g,1));
+    tz(abs(v) <= STUCK_VAL,:) = NaN;
+    stuck_flag(abs(v) <= STUCK_VAL) = 1;
+    stuck_flag(abs(v) > STUCK_VAL) = 0;
+end
+
 for x = 1:size(origTs)
     
     % Get the profile containing records that occur inclusive of the current 
@@ -186,10 +219,15 @@ for x = 1:size(origTs)
     
     % Diff of consecutive timestamps
     tInts = abs(diff(pro(:,1)));
-    % Calculate the median
-    avgInt = median(tInts);
-    % Estimate the time required to complete the profile
-    pTime = avgInt * size(pro,1);
+%     % Calculate the median
+%     avgInt = median(tInts);
+%     % Estimate the time required to complete the profile
+%     pTime = avgInt * size(pro,1);
+    % 2016-04-12: kerfoot@marine - now using the average vertical velocity
+    % (AVG_VERT_VELOCITY) to calculate how long it should take to
+    % complete a profile
+    pDepth = max(pro(:,2)) - min(pro(:,2));
+    pTime = pDepth/AVG_VERT_VELOCITY;
     
     % Find all points in the profile having a longer time interval than
     % pTime

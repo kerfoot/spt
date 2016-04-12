@@ -936,11 +936,15 @@ classdef Dbd < handle
             end
             % Clean up indexed profiles using the objects profile qc
             % properties
-            [~,nR] = filterYoExtrema(tz, v,...
+            [~,nR,stuck_val] = filterYoExtrema(tz, v,...
                 'depthspan', obj.proMinDepthSpan,...
                 'mindepth', obj.proMinDepth,...
                 'numpoints', obj.proMinNumPoints,...
                 'timespan', obj.proMinTimeSpan);
+            
+            % Add the stuck_val array to the sensors to denote the glider
+            % not moving vertically.
+            obj.addSensor('drv_vert_vel_stuck_flag', stuck_val, 'nodim');
             
             % Fill in the profileInds property
             obj.profileInds = nR;
