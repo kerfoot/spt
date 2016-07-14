@@ -12,14 +12,6 @@ function h = plotSampleMap(obj)
 % with the following format: 'Dbd.segment_sampleMap'.
 %
 % See also Dbd
-%
-% ============================================================================
-% $RCSfile: plotSampleMap.m,v $
-% $Source: /home/kerfoot/cvsroot/slocum/matlab/spt/classes/@Dbd/plotSampleMap.m,v $
-% $Revision: 1.1.1.1 $
-% $Date: 2013/09/13 18:51:19 $
-% $Author: kerfoot $
-% ============================================================================
 % 
 
 app = mfilename;
@@ -91,9 +83,8 @@ for s = 1:length(dbdSensors)
     
 end
 
-% Format the axex
+% Format the axes
 set(gca,...
-    'XLim', [obj.startDatenum obj.endDatenum],...
     'YTickLabel', dbdSensors,...
     'YTick', yTicks,...
     'YLim', [0 yTicks(end)+0.5],...
