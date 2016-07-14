@@ -1,6 +1,6 @@
 function num_files = DbdGroup2IoosNc(dgroup, trajectoryTs, varargin)
 %
-% outFile = writeIoosGliderFlatNc(pStruct[,varargin])
+% num_files = DbdGroup2IoosNc(dgroup, trajectoryTs, varargin)
 %
 % Accepts a single profile contained in pStruct, returned from 
 % mapIoosGliderFlatNcSensors.m, and writes a NetCDF file conforming to
@@ -171,7 +171,8 @@ for s = 1:length(sortedSegments)
     % Skip this Dbd instance if no profiles remain
     if isempty(pStruct)
         fprintf(1,...
-            'Dbd instance contains no profiles of type: %s\n',...
+            'Dbd instance (%s) contains no profiles of type: %s\n',...
+            dbd.segment,...
             PROFILE_TYPE);
         continue;
     end
