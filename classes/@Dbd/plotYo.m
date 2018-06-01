@@ -117,9 +117,15 @@ end
 
 % Label the axes and title the plot
 datetick('x', 'HH:MM', 'keeplimits');
+sensors = fieldnames(obj.sensorUnits);
+i = find(strcmp(sensors, obj.depthSensor) == 1);
+y_string = obj.depthSensor;
+if isequal(length(i), 1)
+    y_string = [obj.depthSensor ' (' obj.sensorUnits.(sensors{i}) ')'];
+end
 xlabel(obj.timestampSensor,...
     'Interpreter', 'none');
-ylabel(obj.depthSensor,...
+ylabel(y_string,...
     'Interpreter', 'none');
 tString = sprintf('Yo Profile: %s (%s - %s UTC)',...
     obj.segment,...
